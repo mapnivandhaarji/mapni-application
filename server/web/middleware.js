@@ -9,7 +9,7 @@ const compression = require("compression");
 const cors = require("cors");
 const CONFIG = require("./../config");
 const multer = require("multer");
-const { expressjwt: jwt } = require('express-jwt');
+const { expressjwt: jwt } = require("express-jwt");
 const blacklist = require("express-jwt-blacklist");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -31,9 +31,7 @@ const storage = multer.diskStorage({
         file.fieldname === "function_video"
       ) {
         dirPath = CONFIG.UPLOADS.DIR_PATH_VIDEOS;
-      } else if (
-        file.fieldname === "documents"
-      ) {
+      } else if (file.fieldname === "documents") {
         dirPath = CONFIG.UPLOADS.DIR_PATH_DOCUMENTS;
       }
     }
@@ -55,7 +53,7 @@ module.exports = (app) => {
 
   CONFIG.JWTTOKENALLOWACCESS = jwt({
     secret: CONFIG.JWTTOKENKEY,
-    algorithms: ['HS256'],
+    algorithms: ["HS256"],
     userProperty: "payload",
     //   isRevoked: blacklist.isRevoked,
   });
@@ -110,6 +108,10 @@ module.exports = (app) => {
       maxCount: 15,
     },
     {
+      name: "talukaExcelDocument",
+      maxCount: 1,
+    },
+    {
       name: "profile_image",
       maxCount: 1,
     },
@@ -155,18 +157,25 @@ module.exports = (app) => {
     },
   ]);
 
-
-  
   app.use("/v1/adminUser", cpUpload, require("../web/routes/v1/adminUser"));
   app.use("/v1/sarveMaster", cpUpload, require("../web/routes/v1/sarveMaster"));
-  app.use("/v1/applicationMaster", cpUpload, require("../web/routes/v1/applicationMaster"));
-
-  app.get('/*',
-    function (req, res) {
-      console.log("path not found.......req.url=" + req.url);
-        res.sendFile(path.resolve(__dirname + CONFIG.APP.WEB.PUB_DIR + "/index.html"));
-    }
+  app.use(
+    "/v1/applicationMaster",
+    cpUpload,
+    require("../web/routes/v1/applicationMaster")
   );
+  app.use(
+    "/v1/districtTalukaVillageExcel",
+    cpUpload,
+    require("../web/routes/v1/districtTalukaVillageExcel")
+  );
+
+  app.get("/*", function (req, res) {
+    console.log("path not found.......req.url=" + req.url);
+    res.sendFile(
+      path.resolve(__dirname + CONFIG.APP.WEB.PUB_DIR + "/index.html")
+    );
+  });
 
   app.use((req, res, next) => {
     next(createError(404));
