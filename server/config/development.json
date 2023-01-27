@@ -16,8 +16,8 @@
     },
     "DB": {
         "MONGO": {
-            "DB_NAME": "demoDb",
-            "SERVER_URL": "mongodb://localhost:27017"
+            "DB_NAME": "MapniDetails",
+            "SERVER_URL": "mongodb+srv://mapnivandhaarji:MapniArji@1234@mapnivandhaarji20.rnx8km1.mongodb.net"
         }
     },
     "MAIL": {
