@@ -92,9 +92,10 @@ districtTalukaListCtrl.villageExcelUpload = (req, res) => {
                 .split("</")[0]
                 .split(">")[1]
                 .split(" - ")[0];
-              excelData.villageId = parseInt(
+              excelData.villageIDS = parseInt(
                 xslxData[4].split("</")[0].split(">")[1].split(" - ")[1]
               );
+              excelData.villageId = index;
               excelList.push(excelData);
             } else {
               if (lengthArray === index + 1) {
@@ -170,7 +171,21 @@ districtTalukaListCtrl.talukaWiseVillageList = (req, res) => {
         response.setError(AppCode.NotFound);
         response.send(res);
       } else {
-        response.setData(AppCode.Success, villageList);
+        let villageArrayList = [];
+        villageList.filter((x) => {
+          let Obj = {
+            villageId: x.villageId,
+            villageName: x.villageName,
+            talukaName: x.talukaName,
+            talukaId: x.talukaId,
+            districtId: x.districtId,
+            districtName: x.districtName,
+            _id: x._id,
+            villageShowName: x.villageName + "-" + x.villageIDS,
+          };
+          villageArrayList.push(Obj);
+        });
+        response.setData(AppCode.Success, villageArrayList);
         response.send(res);
       }
     });

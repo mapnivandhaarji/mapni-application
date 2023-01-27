@@ -20,10 +20,10 @@ router
   .route("/villageExcelUpload")
   .post(districtTalukaListCtrl.villageExcelUpload);
 
-//taluka List data  : http://localhost:5001/v1/applicationMaster/talukaList
+//taluka List data  : http://localhost:5001/v1/districtTalukaVillageExcel/talukaList
 router.route("/talukaList").get(districtTalukaListCtrl.talukaList);
 
-//Village List data  : http://localhost:5001/v1/applicationMaster/talukaWiseVillageList?talukaId=2
+//Village List data  : http://localhost:5001/v1/districtTalukaVillageExcel/talukaWiseVillageList?talukaId=2
 router
   .route("/talukaWiseVillageList")
   .get(districtTalukaListCtrl.talukaWiseVillageList);

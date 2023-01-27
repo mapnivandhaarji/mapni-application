@@ -9,6 +9,7 @@ class talukaVillageListModel extends ModelBase {
       districtId: { type: String, allowNullEmpty: true },
       talukaId: { type: String, allowNullEmpty: true },
       villageId: { type: String, allowNullEmpty: true },
+      villageIDS: { type: String, allowNullEmpty: true },
       talukaName: { type: String, allowNullEmpty: true },
       villageName: { type: String, allowNullEmpty: true },
       talukaExcelDocument: { type: String, allowNullEmpty: true },
