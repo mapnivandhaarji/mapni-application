@@ -40,6 +40,9 @@ router.route("/deleteApplicationMaster").post(CONFIG.JWTTOKENALLOWACCESS, Applic
 // applicationMaster delete details: http://localhost:5001/v1/applicationMaster/assignApplicationMaster
 router.route("/assignApplicationMaster").post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.assignApplicationMaster);
 
+// applicationMaster delete details: http://localhost:5001/v1/applicationMaster/applicationMasterListforAssign
+router.route("/applicationMasterListforAssign").get(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.applicationMasterListforAssign);
+
 
 
 

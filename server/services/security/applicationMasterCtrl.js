@@ -379,15 +379,15 @@ applicationMasterCtrl.deleteApplicationMaster = (req, res) => {
 applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   const response = new HttpRespose();
   const data = req.body;
-  if(!!data.sarveId) {
+  if (!!data.sarveId) {
     data.sarveId = ObjectID(data.sarveId)
   }
   try {
     data.applicationId.forEach((applicationId, index) => {
       let bodydata = {
-        "isAssign" : data.isAssign,
-        "assignDate" : data.assignDate,
-        "sarveId" : data.sarveId
+        "isAssign": data.isAssign,
+        "assignDate": data.assignDate,
+        "sarveId": data.sarveId
       }
       let query = { _id: ObjectID(applicationId) }
       ApplicationMasterModel.update(query, bodydata, function (err, applicationMaster) {
@@ -397,18 +397,147 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
           // response.send(res);
         } else {
 
-          if(data.applicationId.length - 1 == index ) {
+          if (data.applicationId.length - 1 == index) {
 
             response.setData(AppCode.Success);
             response.send(res);
           }
         }
       }
-    );
+      );
     });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
   }
-}
+};
+
+/* ApplicationMaster List */
+applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let condition = {};
+    condition["$and"] = [];
+    condition["$and"].push({
+      status: 1
+    })
+    if (!!req.query.isAssign) {
+      condition["$and"].push({
+        isAssign: (req.query.isAssign === 'true')
+      })
+    }
+    if (!!req.query.sarveId && req.query.sarveId != "null") {
+      condition["$and"].push({
+        sarveId: ObjectID(req.query.sarveId)
+      })
+    }
+    console.log("condition",condition);
+    let query = [
+      {
+        $match: condition,
+      },
+      {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: { village: "$village" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          applicantName: 1,
+          applicantMobileNo: 1,
+          applicantAddress: 1,
+          district: 1,
+          taluka: 1,
+          village: 1,
+          applicationFullDate: 1,
+          applicationYear: 1,
+          applicationMonth: 1,
+          applicationDate: 1,
+          newServeNo: 1,
+          oldServeNo: 1,
+          MTRno: 1,
+          talukaName: "$talukaListData.talukaName",
+          villageName: "$villageListData.villageName",
+          isAssign: 1,
+          sarveId: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+    ApplicationMasterModel.advancedAggregate(
+      query,
+      {},
+      (err, applicationMaster) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(applicationMaster)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, applicationMaster);
+          response.send(res);
+        }
+      }
+    );
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
 module.exports = applicationMasterCtrl;
