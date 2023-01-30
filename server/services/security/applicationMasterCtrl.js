@@ -17,6 +17,7 @@ const _ = require("lodash");
 applicationMasterCtrl.applicationMasterCreate = (req, res) => {
   var response = new HttpRespose();
   var data = req.body;
+  data.isAssign = false;
   let query = {
     applicantMobileNo: data.applicantMobileNo,
   };
@@ -374,4 +375,40 @@ applicationMasterCtrl.deleteApplicationMaster = (req, res) => {
   });
 };
 
+/* applicationMaster Assign*/
+applicationMasterCtrl.assignApplicationMaster = (req, res) => {
+  const response = new HttpRespose();
+  const data = req.body;
+  if(!!data.sarveId) {
+    data.sarveId = ObjectID(data.sarveId)
+  }
+  try {
+    data.applicationId.forEach((applicationId, index) => {
+      let bodydata = {
+        "isAssign" : data.isAssign,
+        "assignDate" : data.assignDate,
+        "sarveId" : data.sarveId
+      }
+      let query = { _id: ObjectID(applicationId) }
+      ApplicationMasterModel.update(query, bodydata, function (err, applicationMaster) {
+        if (err) {
+          console.log(err);
+          // response.setError(AppCode.Fail);
+          // response.send(res);
+        } else {
+
+          if(data.applicationId.length - 1 == index ) {
+
+            response.setData(AppCode.Success);
+            response.send(res);
+          }
+        }
+      }
+    );
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+}
 module.exports = applicationMasterCtrl;

@@ -12,7 +12,7 @@ const CONFIG = require("../../../config");
 
 
 
-//--------------------------------------------------Diyan Hr Updated Api----------------------------------------------------------------
+
 //  save applicationMaster data : http://localhost:5001/v1/applicationMaster/applicationMasterCreate
 router.route("/applicationMasterCreate").post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.applicationMasterCreate)
 
@@ -29,12 +29,6 @@ router.route("/applicationMasterList").get(CONFIG.JWTTOKENALLOWACCESS, Applicati
 router.route("/applicationMasterActiveDeactive").post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.applicationMasterActiveDeactive);
 
 
-
-//-------------------------------------------------------------------------------------------------------------------------------------
-
-// // Active applicationMaster List data  : http://localhost:5001/v1/applicationMaster/activeRoleList
-// router.route("/activeRoleList").get(AdminAuthCtrl.activeRoleList);
-
 //Get Active applicationMaster Data List API : http://localhost:5001/v1/applicationMaster/activeApplicationMasterList
 router.route("/activeApplicationMasterList").get(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.activeApplicationMasterList);
 
@@ -43,8 +37,10 @@ router.route("/activeApplicationMasterList").get(CONFIG.JWTTOKENALLOWACCESS, App
 // applicationMaster delete details: http://localhost:5001/v1/applicationMaster/deleteApplicationMaster
 router.route("/deleteApplicationMaster").post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.deleteApplicationMaster);
 
+// applicationMaster delete details: http://localhost:5001/v1/applicationMaster/assignApplicationMaster
+router.route("/assignApplicationMaster").post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.assignApplicationMaster);
 
-// Role API'S End
+
 
 
 

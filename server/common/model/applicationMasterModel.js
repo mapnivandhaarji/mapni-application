@@ -18,7 +18,9 @@ class applicationMasterModel extends ModelBase {
       newServeNo: { type: String, allowNullEmpty: true },
       oldServeNo: { type: String, allowNullEmpty: true },
       MTRno: { type: String, allowNullEmpty: true },
-      // isEditAllows: { type: Boolean, allowNullEmpty: true },
+      isAssign: { type: Boolean, allowNullEmpty: true },
+      assignDate: { type: String, allowNullEmpty: true },
+      sarveId: { type: Object, allowNullEmpty: true },
       status: {
         type: Number,
         allowNullEmpty: false,
