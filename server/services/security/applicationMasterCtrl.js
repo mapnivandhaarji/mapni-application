@@ -200,6 +200,7 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
           newServeNo: 1,
           oldServeNo: 1,
           MTRno: 1,
+          isAssign: 1,
           talukaName: "$talukaListData.talukaName",
           villageName: "$villageListData.villageName",
           status: 1,
@@ -380,30 +381,31 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   const response = new HttpRespose();
   const data = req.body;
   if (!!data.sarveId) {
-    data.sarveId = ObjectID(data.sarveId)
+    data.sarveId = ObjectID(data.sarveId);
   }
   try {
     data.applicationId.forEach((applicationId, index) => {
       let bodydata = {
-        "isAssign": data.isAssign,
-        "assignDate": data.assignDate,
-        "sarveId": data.sarveId
-      }
-      let query = { _id: ObjectID(applicationId) }
-      ApplicationMasterModel.update(query, bodydata, function (err, applicationMaster) {
-        if (err) {
-          console.log(err);
-          // response.setError(AppCode.Fail);
-          // response.send(res);
-        } else {
-
-          if (data.applicationId.length - 1 == index) {
-
-            response.setData(AppCode.Success);
-            response.send(res);
+        isAssign: data.isAssign,
+        assignDate: data.assignDate,
+        sarveId: data.sarveId,
+      };
+      let query = { _id: ObjectID(applicationId) };
+      ApplicationMasterModel.update(
+        query,
+        bodydata,
+        function (err, applicationMaster) {
+          if (err) {
+            console.log(err);
+            // response.setError(AppCode.Fail);
+            // response.send(res);
+          } else {
+            if (data.applicationId.length - 1 == index) {
+              response.setData(AppCode.Success);
+              response.send(res);
+            }
           }
         }
-      }
       );
     });
   } catch (exception) {
@@ -419,19 +421,19 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     let condition = {};
     condition["$and"] = [];
     condition["$and"].push({
-      status: 1
-    })
+      status: 1,
+    });
     if (!!req.query.isAssign) {
       condition["$and"].push({
-        isAssign: (req.query.isAssign === 'true')
-      })
+        isAssign: req.query.isAssign === "true",
+      });
     }
     if (!!req.query.sarveId && req.query.sarveId != "null") {
       condition["$and"].push({
-        sarveId: ObjectID(req.query.sarveId)
-      })
+        sarveId: ObjectID(req.query.sarveId),
+      });
     }
-    console.log("condition",condition);
+    console.log("condition", condition);
     let query = [
       {
         $match: condition,
@@ -495,6 +497,35 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "sarveMaster",
+          as: "sarveMasterData",
+          let: { sarveId: "$sarveId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$sarveId"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$sarveMasterData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           _id: 1,
           applicantName: 1,
@@ -514,6 +545,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
           villageName: "$villageListData.villageName",
           isAssign: 1,
           sarveId: 1,
+          sarveName: "$sarveMasterData.name",
           status: 1,
           createdAt: 1,
           updatedAt: 1,
