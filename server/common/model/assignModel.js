@@ -2,30 +2,15 @@ const ModelBase = require("./modelBase");
 const CONFIG = require("../../config");
 const _ = require("lodash");
 
-class applicationMasterModel extends ModelBase {
+class assignModel extends ModelBase {
   constructor() {
-    super(CONFIG.DB.MONGO.DB_NAME, "applicationMaster", {
-      applicantName: { type: String, allowNullEmpty: true },
-      applicantMobileNo: { type: String, allowNullEmpty: true },
-      applicantAddress: { type: String, allowNullEmpty: true },
-      district: { type: Number, allowNullEmpty: true },
-      taluka: { type: Number, allowNullEmpty: true },
-      village: { type: Number, allowNullEmpty: true },
-      applicationFullDate: { type: String, allowNullEmpty: true },
-      applicationYear: { type: String, allowNullEmpty: true },
-      applicationMonth: { type: String, allowNullEmpty: true },
-      applicationDate: { type: String, allowNullEmpty: true },
-      newServeNo: { type: String, allowNullEmpty: true },
-      oldServeNo: { type: String, allowNullEmpty: true },
-      MTRno: { type: String, allowNullEmpty: true },
-      isAssign: { type: Boolean, allowNullEmpty: true },
-      assignDate: { type: String, allowNullEmpty: true },
+    super(CONFIG.DB.MONGO.DB_NAME, "assignApplication", {
+      applicationId: { type: Object, allowNullEmpty: true },
       sarveId: { type: Object, allowNullEmpty: true },
-      status: {
-        type: Number,
-        allowNullEmpty: false,
-        enum: { 1: "active", 2: "inactive" },
-      },
+      assignDate: { type: String, allowNullEmpty: true },
+      submittedby: { type: Object, allowNullEmpty: true },
+      submittedDate: { type: String, allowNullEmpty: true },
+      isSubmitted: { type: Boolean, allowNullEmpty: true },
       isCompleted: {
         type: Number,
         allowNullEmpty: false,
@@ -126,4 +111,4 @@ class applicationMasterModel extends ModelBase {
   }
 }
 
-module.exports = applicationMasterModel;
+module.exports = assignModel;
