@@ -1,6 +1,7 @@
 let applicationMasterCtrl = {};
 const AdminUserModel = new (require("../../common/model/adminUserModel"))();
-const ApplicationMasterModel = new (require("../../common/model/applicationMasterModel"))();
+const ApplicationMasterModel =
+  new (require("../../common/model/applicationMasterModel"))();
 const AssignModel = new (require("../../common/model/assignModel"))();
 const HttpRespose = require("../../common/httpResponse");
 const AppCode = require("../../common/constant/appCods");
@@ -391,9 +392,10 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
         applicationId: ObjectID(applicationId),
         assignDate: data.assignDate,
         isSubmitted: false,
-        isCompleted: 3
+        isCompleted: 3,
       };
       let query = { _id: ObjectID(applicationId) };
+      console.log("id query application", query);
       ApplicationMasterModel.updateOne(
         query,
         { $set: { isAssign: data.isAssign } },
@@ -403,25 +405,30 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
             // response.setError(AppCode.Fail);
             // response.send(res);
           } else {
-            let query1 ={
+            let query1 = {
               applicationId: ObjectID(applicationId),
-              isSubmitted: false
-            }
+              isSubmitted: false,
+            };
             AssignModel.findOne(query1, {}, (err, assign) => {
               if (err) {
                 console.log(err);
               } else {
                 if (assign !== null) {
+                  console.log("submitted data");
                   let obj1 = {
-                    submittedby : data.sarveId,
-                    submittedDate : data.assignDate,
-                    isSubmitted : true,
-                  }
-                  AssignModel.update({ _id: ObjectID(assign._id) }, obj1, function (err, applicationMaster) {
+                    submittedby: data.sarveId,
+                    submittedDate: data.assignDate,
+                    isSubmitted: true,
+                  };
+                  AssignModel.update(
+                    { _id: ObjectID(assign._id) },
+                    obj1,
+                    function (err, applicationMaster) {
                       if (err) {
                         console.log(err);
                       }
-                    })
+                    }
+                  );
                 }
                 AssignModel.create(obj, (err, assignApplication) => {
                   if (err) {
@@ -429,8 +436,6 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
                     response.setError(AppCode.Fail);
                     response.send(res);
                   } else {
-    
-    
                     if (data.applicationId.length - 1 == index) {
                       response.setData(AppCode.Success);
                       response.send(res);
@@ -439,15 +444,10 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
                 });
               }
             });
-            
           }
         }
       );
     });
-
-
-
-
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
@@ -463,7 +463,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     condition["$and"].push({
       isSubmitted: false,
     });
-    
+
     if (!!req.query.sarveId && req.query.sarveId != "null") {
       condition["$and"].push({
         sarveId: ObjectID(req.query.sarveId),
@@ -500,7 +500,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
                       },
                     },
                   },
-      
+
                   {
                     $project: {
                       _id: 1,
@@ -529,7 +529,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
                       },
                     },
                   },
-      
+
                   {
                     $project: {
                       _id: 1,
@@ -626,8 +626,8 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
           newServeNo: "$applicationMasterData.newServeNo",
           oldServeNo: "$applicationMasterData.oldServeNo",
           MTRno: "$applicationMasterData.MTRno",
-          talukaName: "$talukaListData.talukaName",
-          villageName: "$villageListData.villageName",
+          talukaName: "$applicationMasterData.talukaName",
+          villageName: "$applicationMasterData.villageName",
           isAssign: "$applicationMasterData.isAssign",
           sarveId: 1,
           sarveName: "$sarveMasterData.name",
@@ -637,21 +637,17 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
         },
       },
     ];
-    AssignModel.advancedAggregate(
-      query,
-      {},
-      (err, applicationMaster) => {
-        if (err) {
-          throw err;
-        } else if (_.isEmpty(applicationMaster)) {
-          response.setError(AppCode.NotFound);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, applicationMaster);
-          response.send(res);
-        }
+    AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(applicationMaster)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, applicationMaster);
+        response.send(res);
       }
-    );
+    });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
