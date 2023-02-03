@@ -463,6 +463,9 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     condition["$and"].push({
       isSubmitted: false,
     });
+    condition["$and"].push({
+      isCompleted: 3,
+    });
 
     if (!!req.query.sarveId && req.query.sarveId != "null") {
       condition["$and"].push({
@@ -648,6 +651,107 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
         response.send(res);
       }
     });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
+/* Application Assign History List */
+applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let query = [
+      {
+        $match: {
+          applicationId: ObjectID(req.query.applicationId),
+        },
+      },
+      {
+        $lookup: {
+          from: "sarveMaster",
+          as: "sarveMasterData",
+          let: { sarveId: "$sarveId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$sarveId"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$sarveMasterData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "sarveMaster",
+          as: "submittedbyData",
+          let: { submittedby: "$submittedby" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$submittedby"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$submittedbyData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          sarveId: 1,
+          sarveName: "$sarveMasterData.name",
+          applicationId: 1,
+          assignDate: 1,
+          isSubmitted: 1,
+          submittedDate: 1,
+          submittedby: 1,
+          submittedbyName: "$submittedbyData.name",
+          isCompleted: 1,
+        },
+      }
+    ];
+    AssignModel.advancedAggregate( query, {}, (err, Assign) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(Assign)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, Assign);
+          response.send(res);
+        }
+      }
+    );
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
