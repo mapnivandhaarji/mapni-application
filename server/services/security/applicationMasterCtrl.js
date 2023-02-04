@@ -78,6 +78,64 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: { village: "$village" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           _id: 1,
           applicantName: 1,
@@ -93,6 +151,8 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
           newServeNo: 1,
           oldServeNo: 1,
           MTRno: 1,
+          talukaName: "$talukaListData.talukaName",
+          villageName: "$villageListData.villageName",
           status: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -738,20 +798,19 @@ applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
           submittedbyName: "$submittedbyData.name",
           isCompleted: 1,
         },
-      }
+      },
     ];
-    AssignModel.advancedAggregate( query, {}, (err, Assign) => {
-        if (err) {
-          throw err;
-        } else if (_.isEmpty(Assign)) {
-          response.setError(AppCode.NotFound);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, Assign);
-          response.send(res);
-        }
+    AssignModel.advancedAggregate(query, {}, (err, Assign) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(Assign)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, Assign);
+        response.send(res);
       }
-    );
+    });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
