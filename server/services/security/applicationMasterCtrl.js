@@ -984,4 +984,46 @@ applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
     response.send(res);
   }
 };
+
+
+/*unique Year List */
+applicationMasterCtrl.uniqueYearList = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let query = [
+      {
+        $match: {},
+      },
+      {
+        $group: {
+          _id: {
+            "applicationYear": "$applicationYear"
+          },
+          applicationYear: {
+            $first: "$applicationYear"
+          }
+        }
+      },
+      {
+        $sort : {
+          applicationYear: 1,
+        }
+      }
+    ];
+    ApplicationMasterModel.advancedAggregate(query, {}, (err, uniqueYearList) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(uniqueYearList)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, uniqueYearList);
+        response.send(res);
+      }
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
 module.exports = applicationMasterCtrl;

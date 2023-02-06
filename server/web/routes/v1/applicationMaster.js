@@ -92,4 +92,12 @@ router
     ApplicationMasterCtrl.assignHistorybyApplicationId
   );
 
+  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/uniqueYearList
+router
+  .route("/uniqueYearList")
+  .get(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.uniqueYearList
+  );
+
 module.exports = router;

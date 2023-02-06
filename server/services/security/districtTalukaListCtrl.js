@@ -3,6 +3,8 @@ const districtTalukaListModel =
   new (require("../../common/model/districtTalukaListModel"))();
 const talukaVillageListModel =
   new (require("../../common/model/talukaVillageListModel"))();
+  const ApplicationMasterModel =
+  new (require("../../common/model/applicationMasterModel"))();
 const HttpRespose = require("../../common/httpResponse");
 const AppCode = require("../../common/constant/appCods");
 const Logger = require("../../common/logger");
@@ -137,6 +139,82 @@ districtTalukaListCtrl.talukaList = (req, res) => {
       },
     ];
     districtTalukaListModel.advancedAggregate(query, {}, (err, talukaList) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(talukaList)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, talukaList);
+        response.send(res);
+      }
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
+/*unique Taluka List */
+districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let query = [
+      {
+        $match: {},
+      },
+      {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                districtName: 1,
+                districtId: 1,
+                talukaId: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        }
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        }
+      },
+      {
+        $group: {
+          _id: {
+            "taluka": "$talukaListData.talukaId"
+          },
+          districtName: {
+            $first: "$talukaListData.districtName"
+          },
+          talukaName: {
+            $first: "$talukaListData.talukaName"
+          },
+          districtId: {
+            $first: "$talukaListData.districtId"
+          },
+          talukaId: {
+            $first: "$talukaListData.talukaId"
+          },
+        }
+      }
+    ];
+    ApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
       if (err) {
         throw err;
       } else if (_.isEmpty(talukaList)) {
