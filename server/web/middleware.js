@@ -112,47 +112,7 @@ module.exports = (app) => {
       maxCount: 1,
     },
     {
-      name: "profile_image",
-      maxCount: 1,
-    },
-    {
-      name: "profile_video",
-      maxCount: 1,
-    },
-    {
-      name: "vedioUrl",
-      maxCount: 1,
-    },
-    {
-      name: "function_video",
-      maxCount: 1,
-    },
-    {
-      name: "icon_image",
-      maxCount: 1,
-    },
-    {
-      name: "storyVideos",
-      maxCount: 30,
-    },
-    {
-      name: "storyImages",
-      maxCount: 30,
-    },
-    {
-      name: "logo",
-      maxCount: 1,
-    },
-    {
-      name: "default_icon",
-      maxCount: 1,
-    },
-    {
-      name: "active_icon",
-      maxCount: 1,
-    },
-    {
-      name: "Image",
+      name: "applicationExcelUpload",
       maxCount: 1,
     },
   ]);

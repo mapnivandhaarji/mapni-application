@@ -2,6 +2,10 @@ let applicationMasterCtrl = {};
 const AdminUserModel = new (require("../../common/model/adminUserModel"))();
 const ApplicationMasterModel =
   new (require("../../common/model/applicationMasterModel"))();
+const districtTalukaListModel =
+  new (require("../../common/model/districtTalukaListModel"))();
+const talukaVillageListModel =
+  new (require("../../common/model/talukaVillageListModel"))();
 const AssignModel = new (require("../../common/model/assignModel"))();
 const HttpRespose = require("../../common/httpResponse");
 const AppCode = require("../../common/constant/appCods");
@@ -10,9 +14,145 @@ const bcrypt = require("bcryptjs");
 const blacklist = require("express-jwt-blacklist");
 const ObjectID = require("mongodb").ObjectID;
 const async = require("async");
+const moment = require("moment");
 const CONFIG = require("../../config");
+const readXlsxFile = require("read-excel-file/node");
 
 const _ = require("lodash");
+
+applicationMasterCtrl.applicationExcelUpload = (req, res) => {
+  const response = new HttpRespose();
+
+  try {
+    if (!!req.files.applicationExcelUpload) {
+      req.body.applicationExcelUpload =
+        req.files.applicationExcelUpload[0].filename;
+    }
+    console.log(req.files);
+    // readXlsxFile('D:/GIT/MyNucleusApp_API/uploads/s1.xlsx').then((rows) => {
+    readXlsxFile(req.files.applicationExcelUpload[0].path).then((rows) => {
+      if (rows.length > 0) {
+        let excelList = [];
+        var lengthArray = rows.length;
+        let index = 0;
+
+        var bar = new Promise((resolve) => {
+          rows.forEach(function (xslxData) {
+            if (index > 0) {
+              // taluka list
+              let query = [
+                {
+                  $match: {
+                    talukaName: xslxData[5],
+                  },
+                },
+              ];
+
+              districtTalukaListModel.advancedAggregate(
+                query,
+                {},
+                (err, talukaList) => {
+                  if (err) {
+                    console.log(err);
+                    response.setError(AppCode.Fail);
+                    response.send(res);
+                  } else {
+                    let query = [
+                      {
+                        $match: {
+                          villageName: xslxData[6],
+                        },
+                      },
+                    ];
+                    talukaVillageListModel.advancedAggregate(
+                      query,
+                      {},
+                      (err, VillageList) => {
+                        if (err) {
+                          console.log(err);
+                          response.setError(AppCode.Fail);
+                          response.send(res);
+                        } else {
+                          let excelData = {};
+                          excelData.MTRno = !!xslxData[0]
+                            ? xslxData[0].toString()
+                            : "";
+                          excelData.applicantName = !!xslxData[1]
+                            ? xslxData[1]
+                            : "";
+                          excelData.applicantMobileNo = !!xslxData[2]
+                            ? xslxData[2]
+                            : "";
+                          excelData.applicantAddress = !!xslxData[3]
+                            ? xslxData[3]
+                            : "";
+                          excelData.district =
+                            xslxData[4] == "સુરેન્દ્રનગર" ? 8 : 0;
+                          excelData.taluka = talukaList[0].talukaId;
+                          excelData.village = VillageList[0].villageId;
+                          excelData.applicationFullDate =
+                            moment(new Date(xslxData[7])).format(
+                              "yyyy-MM-DDThh:mm:ss"
+                            ) + "Z";
+                          excelData.applicationYear = new Date(xslxData[7])
+                            .getFullYear()
+                            .toString();
+                          excelData.applicationMonth = (
+                            new Date(xslxData[7]).getMonth() + 1
+                          ).toString();
+                          excelData.applicationDate = new Date(xslxData[7])
+                            .getDate()
+                            .toString();
+                          excelData.oldServeNo = !!xslxData[8]
+                            ? xslxData[8].toString()
+                            : "";
+                          excelData.newServeNo = !!xslxData[9]
+                            ? xslxData[9].toString()
+                            : "";
+                          excelData.isAssign = false;
+                          excelData.isCompleted = 3;
+                          excelData.createdAt = new Date();
+                          excelData.status = 1;
+                          excelList.push(excelData);
+                          index++;
+                        }
+                        ApplicationMasterModel.createMany(
+                          excelList,
+                          function (err) {
+                            if (err) {
+                              response.setError(AppCode.InternalServerError);
+                              response.send(res);
+                            } else {
+                              response.setData(AppCode.Success);
+                              response.send(res);
+                            }
+                          }
+                        );
+                      }
+                    );
+                  }
+                }
+              );
+            } else {
+              if (lengthArray === index + 1) {
+                resolve();
+              }
+              index++;
+            }
+          });
+        });
+        bar.then(() => {
+          console.log(excelList);
+        });
+      }
+      //   console.log(rows)
+    });
+  } catch (exception) {
+    console.log(exception);
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
 
 /* applicationMaster Create */
 applicationMasterCtrl.applicationMasterCreate = (req, res) => {
@@ -20,31 +160,33 @@ applicationMasterCtrl.applicationMasterCreate = (req, res) => {
   var data = req.body;
   data.isAssign = false;
   data.isCompleted = 3;
-  let query = {
-    applicantMobileNo: data.applicantMobileNo,
-  };
+  // let query = {
+  //   applicantMobileNo: data.applicantMobileNo,
+  // };
 
-  ApplicationMasterModel.findOne(query, {}, (err, applicationMaster) => {
+  ApplicationMasterModel.create(data, (err, applicationMaster) => {
     if (err) {
       console.log(err);
       response.setError(AppCode.Fail);
       response.send(res);
-    } else if (applicationMaster !== null) {
-      response.setError(AppCode.AllreadyExist);
-      response.send(res);
     } else {
-      ApplicationMasterModel.create(data, (err, applicationMaster) => {
-        if (err) {
-          console.log(err);
-          response.setError(AppCode.Fail);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, applicationMaster);
-          response.send(res);
-        }
-      });
+      response.setData(AppCode.Success, applicationMaster);
+      response.send(res);
     }
   });
+
+  // ApplicationMasterModel.findOne(query, {}, (err, applicationMaster) => {
+  //   if (err) {
+  //     console.log(err);
+  //     response.setError(AppCode.Fail);
+  //     response.send(res);
+  //   } else if (applicationMaster !== null) {
+  //     response.setError(AppCode.AllreadyExist);
+  //     response.send(res);
+  //   } else {
+
+  //   }
+  // });
 };
 
 /* applicationMaster Active-Deactive */
@@ -78,6 +220,64 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: { village: "$village" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $project: {
           _id: 1,
           applicantName: 1,
@@ -93,6 +293,8 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
           newServeNo: 1,
           oldServeNo: 1,
           MTRno: 1,
+          talukaName: "$talukaListData.talukaName",
+          villageName: "$villageListData.villageName",
           status: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -738,20 +940,19 @@ applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
           submittedbyName: "$submittedbyData.name",
           isCompleted: 1,
         },
-      }
+      },
     ];
-    AssignModel.advancedAggregate( query, {}, (err, Assign) => {
-        if (err) {
-          throw err;
-        } else if (_.isEmpty(Assign)) {
-          response.setError(AppCode.NotFound);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, Assign);
-          response.send(res);
-        }
+    AssignModel.advancedAggregate(query, {}, (err, Assign) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(Assign)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, Assign);
+        response.send(res);
       }
-    );
+    });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
