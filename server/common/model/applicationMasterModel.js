@@ -21,6 +21,7 @@ class applicationMasterModel extends ModelBase {
       isAssign: { type: Boolean, allowNullEmpty: true },
       assignDate: { type: String, allowNullEmpty: true },
       sarveId: { type: Object, allowNullEmpty: true },
+      applicationExcelUpload: { type: String, allowNullEmpty: true },
       status: {
         type: Number,
         allowNullEmpty: false,
@@ -55,6 +56,19 @@ class applicationMasterModel extends ModelBase {
       }
 
       cb(null, result.ops[0]);
+    });
+  }
+
+  createMany(data, cb) {
+    var self = this;
+    // data.createdAt = new Date();
+    // data.status = 1;
+
+    self.insertMany(data, function (err, result) {
+      if (err) {
+        return cb(err);
+      }
+      cb(null, result.ops);
     });
   }
 
