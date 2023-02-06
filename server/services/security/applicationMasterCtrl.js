@@ -326,9 +326,26 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
 applicationMasterCtrl.applicationMasterList = (req, res) => {
   const response = new HttpRespose();
   try {
+    let condition = {};
+    condition["$and"] = [];
+    condition["$and"].push({
+      isAssign: false,
+    });
+
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+      condition["$and"].push({
+        applicationYear: req.query.applicationYear,
+      });
+    }
+    console.log("condition" , condition);
     let query = [
       {
-        $match: {},
+        $match: condition,
       },
       {
         $lookup: {
@@ -668,7 +685,16 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     condition["$and"].push({
       isCompleted: 3,
     });
-
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+      condition["$and"].push({
+        applicationYear: req.query.applicationYear,
+      });
+    }
     if (!!req.query.sarveId && req.query.sarveId != "null") {
       condition["$and"].push({
         sarveId: ObjectID(req.query.sarveId),
