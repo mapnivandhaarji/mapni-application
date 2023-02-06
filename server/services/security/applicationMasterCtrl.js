@@ -34,11 +34,13 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
       if (rows.length > 0) {
         let excelList = [];
         var lengthArray = rows.length;
-        let index = 0;
-
+        console.log(lengthArray);
         var bar = new Promise((resolve) => {
-          rows.forEach(function (xslxData) {
-            if (index > 0) {
+          for (let y = 0; y < rows.length; y++) {
+            const xslxData = rows[y];
+            console.log("............................", xslxData);
+
+            if (y > 0) {
               // taluka list
               let query = [
                 {
@@ -53,14 +55,21 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                 {},
                 (err, talukaList) => {
                   if (err) {
-                    console.log(err);
-                    response.setError(AppCode.Fail);
-                    response.send(res);
+                    console.log("taluka list error", err);
+                    // response.setError(AppCode.Fail);
+                    // response.send(res);
                   } else {
                     let query = [
                       {
                         $match: {
-                          villageName: xslxData[6],
+                          $and: [
+                            {
+                              villageName: xslxData[6],
+                            },
+                            {
+                              talukaName: xslxData[5],
+                            },
+                          ],
                         },
                       },
                     ];
@@ -69,23 +78,17 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                       {},
                       (err, VillageList) => {
                         if (err) {
-                          console.log(err);
-                          response.setError(AppCode.Fail);
-                          response.send(res);
+                          console.log("village list", err);
+                          // response.setError(AppCode.Fail);
+                          // response.send(res);
                         } else {
                           let excelData = {};
-                          excelData.MTRno = !!xslxData[0]
-                            ? xslxData[0].toString()
-                            : "";
-                          excelData.applicantName = !!xslxData[1]
-                            ? xslxData[1]
-                            : "";
-                          excelData.applicantMobileNo = !!xslxData[2]
-                            ? xslxData[2]
-                            : "";
-                          excelData.applicantAddress = !!xslxData[3]
-                            ? xslxData[3]
-                            : "";
+                          excelData.MTRno = xslxData[0].toString();
+                          excelData.applicantName = xslxData[1];
+                          excelData.applicantMobileNo =
+                            xslxData[2] == null ? "" : xslxData[2].toString();
+                          excelData.applicantAddress =
+                            xslxData[3] == null ? "" : xslxData[3].toString();
                           excelData.district =
                             xslxData[4] == "સુરેન્દ્રનગર" ? 8 : 0;
                           excelData.taluka = talukaList[0].talukaId;
@@ -103,43 +106,43 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                           excelData.applicationDate = new Date(xslxData[7])
                             .getDate()
                             .toString();
-                          excelData.oldServeNo = !!xslxData[8]
-                            ? xslxData[8].toString()
-                            : "";
-                          excelData.newServeNo = !!xslxData[9]
-                            ? xslxData[9].toString()
-                            : "";
+                          excelData.oldServeNo =
+                            xslxData[8] == null ? "" : xslxData[8].toString();
+                          excelData.newServeNo =
+                            xslxData[9] == null ? "" : xslxData[9].toString();
                           excelData.isAssign = false;
                           excelData.isCompleted = 3;
                           excelData.createdAt = new Date();
                           excelData.status = 1;
                           excelList.push(excelData);
-                          index++;
                         }
-                        ApplicationMasterModel.createMany(
-                          excelList,
-                          function (err) {
-                            if (err) {
-                              response.setError(AppCode.InternalServerError);
-                              response.send(res);
-                            } else {
-                              response.setData(AppCode.Success);
-                              response.send(res);
+
+                        if (lengthArray - 1 == y) {
+                          ApplicationMasterModel.createMany(
+                            excelList,
+                            function (err) {
+                              if (err) {
+                                console.log("create many error", err);
+                                // response.setError(AppCode.InternalServerError);
+                                // response.send(res);
+                              } else {
+                                response.setData(AppCode.Success);
+                                response.send(res);
+                              }
                             }
-                          }
-                        );
+                          );
+                        }
                       }
                     );
                   }
                 }
               );
             } else {
-              if (lengthArray === index + 1) {
+              if (lengthArray == y + 1) {
                 resolve();
               }
-              index++;
             }
-          });
+          }
         });
         bar.then(() => {
           console.log(excelList);
@@ -328,9 +331,16 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
   try {
     let condition = {};
     condition["$and"] = [];
+
     condition["$and"].push({
-      isAssign: false,
+      status: 1,
     });
+
+    if (req.query.isAssign) {
+      condition["$and"].push({
+        isAssign: false,
+      });
+    }
 
     if (!!req.query.taluka && req.query.taluka != "null") {
       condition["$and"].push({
@@ -342,7 +352,7 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
         applicationYear: req.query.applicationYear,
       });
     }
-    console.log("condition" , condition);
+    console.log("condition", condition);
     let query = [
       {
         $match: condition,
@@ -985,7 +995,6 @@ applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
   }
 };
 
-
 /*unique Year List */
 applicationMasterCtrl.uniqueYearList = (req, res) => {
   const response = new HttpRespose();
@@ -997,30 +1006,34 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
       {
         $group: {
           _id: {
-            "applicationYear": "$applicationYear"
+            applicationYear: "$applicationYear",
           },
           applicationYear: {
-            $first: "$applicationYear"
-          }
-        }
+            $first: "$applicationYear",
+          },
+        },
       },
       {
-        $sort : {
+        $sort: {
           applicationYear: 1,
+        },
+      },
+    ];
+    ApplicationMasterModel.advancedAggregate(
+      query,
+      {},
+      (err, uniqueYearList) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(uniqueYearList)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, uniqueYearList);
+          response.send(res);
         }
       }
-    ];
-    ApplicationMasterModel.advancedAggregate(query, {}, (err, uniqueYearList) => {
-      if (err) {
-        throw err;
-      } else if (_.isEmpty(uniqueYearList)) {
-        response.setError(AppCode.NotFound);
-        response.send(res);
-      } else {
-        response.setData(AppCode.Success, uniqueYearList);
-        response.send(res);
-      }
-    });
+    );
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
