@@ -673,212 +673,268 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   }
 };
 
-/* ApplicationMaster List */
-applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
-  const response = new HttpRespose();
-  try {
+const getApplicationList = (taluka, applicationYear) => {
+  const promise = new Promise((resolve, reject) => {
+
     let condition = {};
-    condition["$and"] = [];
-    condition["$and"].push({
-      isSubmitted: false,
-    });
-    condition["$and"].push({
-      isCompleted: 3,
-    });
-    if (!!req.query.taluka && req.query.taluka != "null") {
+    if(taluka != "" || applicationYear != "") {
+      condition["$and"] = [];
+    }
+    if (taluka != "") {
       condition["$and"].push({
-        taluka: parseInt(req.query.taluka),
+        taluka: parseInt(taluka),
       });
     }
-    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+    if (applicationYear != "") {
       condition["$and"].push({
-        applicationYear: req.query.applicationYear,
+        applicationYear: applicationYear,
       });
     }
-    if (!!req.query.sarveId && req.query.sarveId != "null") {
-      condition["$and"].push({
-        sarveId: ObjectID(req.query.sarveId),
-      });
-    }
-    console.log("condition", condition);
     let query = [
       {
-        $match: condition,
-      },
-      {
-        $lookup: {
-          from: "applicationMaster",
-          as: "applicationMasterData",
-          let: { applicationId: "$applicationId" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$applicationId"],
-                },
-              },
-            },
-            {
-              $lookup: {
-                from: "talukaList",
-                as: "talukaListData",
-                let: { taluka: "$taluka" },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ["$talukaId", "$$taluka"],
-                      },
-                    },
-                  },
-
-                  {
-                    $project: {
-                      _id: 1,
-                      talukaName: 1,
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $unwind: {
-                path: "$talukaListData",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-            {
-              $lookup: {
-                from: "villageList",
-                as: "villageListData",
-                let: { village: "$village" },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ["$villageId", "$$village"],
-                      },
-                    },
-                  },
-
-                  {
-                    $project: {
-                      _id: 1,
-                      villageName: 1,
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $unwind: {
-                path: "$villageListData",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                applicantName: 1,
-                applicantMobileNo: 1,
-                applicantAddress: 1,
-                district: 1,
-                taluka: 1,
-                village: 1,
-                applicationFullDate: 1,
-                applicationYear: 1,
-                applicationMonth: 1,
-                applicationDate: 1,
-                newServeNo: 1,
-                oldServeNo: 1,
-                MTRno: 1,
-                talukaName: "$talukaListData.talukaName",
-                villageName: "$villageListData.villageName",
-                isAssign: 1,
-                sarveId: 1,
-                sarveName: "$sarveMasterData.name",
-                status: 1,
-                createdAt: 1,
-                updatedAt: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $unwind: {
-          path: "$applicationMasterData",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "sarveMaster",
-          as: "sarveMasterData",
-          let: { sarveId: "$sarveId" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$sarveId"],
-                },
-              },
-            },
-
-            {
-              $project: {
-                _id: 1,
-                name: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $unwind: {
-          path: "$sarveMasterData",
-          preserveNullAndEmptyArrays: true,
-        },
+        $match: condition
       },
       {
         $project: {
           _id: 1,
-          applicationId: "$applicationMasterData._id",
-          applicantName: "$applicationMasterData.applicantName",
-          applicantMobileNo: "$applicationMasterData.applicantMobileNo",
-          applicantAddress: "$applicationMasterData.applicantAddress",
-          district: "$applicationMasterData.district",
-          taluka: "$applicationMasterData.taluka",
-          village: "$applicationMasterData.village",
-          applicationFullDate: "$applicationMasterData.applicationFullDate",
-          applicationYear: "$applicationMasterData.applicationYear",
-          applicationMonth: "$applicationMasterData.applicationMonth",
-          applicationDate: "$applicationMasterData.applicationDate",
-          newServeNo: "$applicationMasterData.newServeNo",
-          oldServeNo: "$applicationMasterData.oldServeNo",
-          MTRno: "$applicationMasterData.MTRno",
-          talukaName: "$applicationMasterData.talukaName",
-          villageName: "$applicationMasterData.villageName",
-          isAssign: "$applicationMasterData.isAssign",
-          sarveId: 1,
-          sarveName: "$sarveMasterData.name",
-          status: 1,
-          createdAt: 1,
-          updatedAt: 1,
-        },
-      },
-    ];
-    AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
-      if (err) {
-        throw err;
-      } else if (_.isEmpty(applicationMaster)) {
-        response.setError(AppCode.NotFound);
-        response.send(res);
-      } else {
-        response.setData(AppCode.Success, applicationMaster);
-        response.send(res);
+        }
       }
+    ]
+    ApplicationMasterModel.advancedAggregate(query, {}, (err, applicationData) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(applicationData);
     });
+  });
+
+  return promise;
+}
+
+/* ApplicationMaster List */
+applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    
+    let taluka = ''
+    let applicationYear = ''
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      taluka = req.query.taluka
+    }
+    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+      applicationYear = req.query.applicationYear
+    }
+    let applicationList = [];
+    getApplicationList(taluka, applicationYear).then((applicationData) => {
+      if (applicationData.length > 0) {   
+        _.forEach(applicationData, (applicationId) => {
+          applicationList.push(ObjectID(applicationId._id))
+      });
+      }
+
+
+      let condition = {};
+      condition["$and"] = [];
+      condition["$and"].push({
+        isSubmitted: false,
+      });
+      condition["$and"].push({
+        isCompleted: 3,
+      });
+      condition["$and"].push({
+        applicationId: { $in: applicationList },
+      });
+
+
+      if (!!req.query.sarveId && req.query.sarveId != "null") {
+        condition["$and"].push({
+          sarveId: ObjectID(req.query.sarveId),
+        });
+      }
+      console.log("applicationData", applicationList);
+      console.log("condition", condition);
+      let query = [
+        {
+          $match: condition,
+        },
+        {
+          $lookup: {
+            from: "applicationMaster",
+            as: "applicationMasterData",
+            let: { applicationId: "$applicationId" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$applicationId"],
+                  },
+                },
+              },
+              {
+                $lookup: {
+                  from: "talukaList",
+                  as: "talukaListData",
+                  let: { taluka: "$taluka" },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$talukaId", "$$taluka"],
+                        },
+                      },
+                    },
+  
+                    {
+                      $project: {
+                        _id: 1,
+                        talukaName: 1,
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                $unwind: {
+                  path: "$talukaListData",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $lookup: {
+                  from: "villageList",
+                  as: "villageListData",
+                  let: { village: "$village" },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$villageId", "$$village"],
+                        },
+                      },
+                    },
+  
+                    {
+                      $project: {
+                        _id: 1,
+                        villageName: 1,
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                $unwind: {
+                  path: "$villageListData",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  applicantName: 1,
+                  applicantMobileNo: 1,
+                  applicantAddress: 1,
+                  district: 1,
+                  taluka: 1,
+                  village: 1,
+                  applicationFullDate: 1,
+                  applicationYear: 1,
+                  applicationMonth: 1,
+                  applicationDate: 1,
+                  newServeNo: 1,
+                  oldServeNo: 1,
+                  MTRno: 1,
+                  talukaName: "$talukaListData.talukaName",
+                  villageName: "$villageListData.villageName",
+                  isAssign: 1,
+                  sarveId: 1,
+                  sarveName: "$sarveMasterData.name",
+                  status: 1,
+                  createdAt: 1,
+                  updatedAt: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $unwind: {
+            path: "$applicationMasterData",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "sarveMaster",
+            as: "sarveMasterData",
+            let: { sarveId: "$sarveId" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$sarveId"],
+                  },
+                },
+              },
+  
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $unwind: {
+            path: "$sarveMasterData",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            applicationId: "$applicationMasterData._id",
+            applicantName: "$applicationMasterData.applicantName",
+            applicantMobileNo: "$applicationMasterData.applicantMobileNo",
+            applicantAddress: "$applicationMasterData.applicantAddress",
+            district: "$applicationMasterData.district",
+            taluka: "$applicationMasterData.taluka",
+            village: "$applicationMasterData.village",
+            applicationFullDate: "$applicationMasterData.applicationFullDate",
+            applicationYear: "$applicationMasterData.applicationYear",
+            applicationMonth: "$applicationMasterData.applicationMonth",
+            applicationDate: "$applicationMasterData.applicationDate",
+            newServeNo: "$applicationMasterData.newServeNo",
+            oldServeNo: "$applicationMasterData.oldServeNo",
+            MTRno: "$applicationMasterData.MTRno",
+            talukaName: "$applicationMasterData.talukaName",
+            villageName: "$applicationMasterData.villageName",
+            isAssign: "$applicationMasterData.isAssign",
+            sarveId: 1,
+            sarveName: "$sarveMasterData.name",
+            status: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        },
+      ];
+      AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(applicationMaster)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, applicationMaster);
+          response.send(res);
+        }
+      });
+    })
+
+
+
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);

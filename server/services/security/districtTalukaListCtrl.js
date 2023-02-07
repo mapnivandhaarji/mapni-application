@@ -231,6 +231,91 @@ districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
   }
 };
 
+/*unique Village List */
+districtTalukaListCtrl.uniqueVillageList = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let query = [
+      {
+        $match: {
+          taluka: parseInt(req.query.talukaId),
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: {
+            village: "$village",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+                villageIDS: 1,
+                villageId: 1,
+                talukaName: 1,
+                talukaId: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            village: "$villageListData.villageId",
+          },
+          villageName: {
+            $first: "$villageListData.villageName",
+          },
+          villageId: {
+            $first: "$villageListData.villageId",
+          },
+          villageIDS: {
+            $first: "$villageListData.villageIDS",
+          },
+          talukaName: {
+            $first: "$villageListData.talukaName",
+          },
+          talukaId: {
+            $first: "$villageListData.talukaId",
+          },
+        },
+      },
+    ];
+    ApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(talukaList)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, talukaList);
+        response.send(res);
+      }
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 /* Village List */
 districtTalukaListCtrl.talukaWiseVillageList = (req, res) => {
   const response = new HttpRespose();
