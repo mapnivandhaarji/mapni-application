@@ -28,121 +28,62 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
       req.body.applicationExcelUpload =
         req.files.applicationExcelUpload[0].filename;
     }
-    console.log(req.files);
     // readXlsxFile('D:/GIT/MyNucleusApp_API/uploads/s1.xlsx').then((rows) => {
     readXlsxFile(req.files.applicationExcelUpload[0].path).then((rows) => {
       if (rows.length > 0) {
         let excelList = [];
         var lengthArray = rows.length;
-        console.log(lengthArray);
         var bar = new Promise((resolve) => {
-          for (let y = 0; y < rows.length; y++) {
-            const xslxData = rows[y];
-            console.log("............................", xslxData);
-
-            if (y > 0) {
-              // taluka list
-              let query = [
-                {
-                  $match: {
-                    talukaName: xslxData[5],
-                  },
-                },
-              ];
-
-              districtTalukaListModel.advancedAggregate(
-                query,
-                {},
-                (err, talukaList) => {
-                  if (err) {
-                    console.log("taluka list error", err);
-                    // response.setError(AppCode.Fail);
-                    // response.send(res);
-                  } else {
-                    let query = [
-                      {
-                        $match: {
-                          $and: [
-                            {
-                              villageName: xslxData[6],
-                            },
-                            {
-                              talukaName: xslxData[5],
-                            },
-                          ],
-                        },
-                      },
-                    ];
-                    talukaVillageListModel.advancedAggregate(
-                      query,
-                      {},
-                      (err, VillageList) => {
-                        if (err) {
-                          console.log("village list", err);
-                          // response.setError(AppCode.Fail);
-                          // response.send(res);
-                        } else {
-                          let excelData = {};
-                          excelData.MTRno = xslxData[0].toString();
-                          excelData.applicantName = xslxData[1];
-                          excelData.applicantMobileNo =
-                            xslxData[2] == null ? "" : xslxData[2].toString();
-                          excelData.applicantAddress =
-                            xslxData[3] == null ? "" : xslxData[3].toString();
-                          excelData.district =
-                            xslxData[4] == "સુરેન્દ્રનગર" ? 8 : 0;
-                          excelData.taluka = talukaList[0].talukaId;
-                          excelData.village = VillageList[0].villageId;
-                          excelData.applicationFullDate =
-                            moment(new Date(xslxData[7])).format(
-                              "yyyy-MM-DDThh:mm:ss"
-                            ) + "Z";
-                          excelData.applicationYear = new Date(xslxData[7])
-                            .getFullYear()
-                            .toString();
-                          excelData.applicationMonth = (
-                            new Date(xslxData[7]).getMonth() + 1
-                          ).toString();
-                          excelData.applicationDate = new Date(xslxData[7])
-                            .getDate()
-                            .toString();
-                          excelData.oldServeNo =
-                            xslxData[8] == null ? "" : xslxData[8].toString();
-                          excelData.newServeNo =
-                            xslxData[9] == null ? "" : xslxData[9].toString();
-                          excelData.isAssign = false;
-                          excelData.isCompleted = 3;
-                          excelData.createdAt = new Date();
-                          excelData.status = 1;
-                          excelList.push(excelData);
-                        }
-
-                        if (lengthArray - 1 == y) {
-                          ApplicationMasterModel.createMany(
-                            excelList,
-                            function (err) {
-                              if (err) {
-                                console.log("create many error", err);
-                                // response.setError(AppCode.InternalServerError);
-                                // response.send(res);
-                              } else {
-                                response.setData(AppCode.Success);
-                                response.send(res);
-                              }
-                            }
-                          );
-                        }
-                      }
-                    );
-                  }
-                }
-              );
+          rows.forEach(function (xslxData, index) {
+            if (index > 0) {
+              console.log(xslxData);
+              let excelData = {};
+              excelData.MTRno = xslxData[0].toString();
+              excelData.applicantName = xslxData[1];
+              excelData.applicantMobileNo =
+                xslxData[2] == null ? "" : xslxData[2].toString();
+              excelData.applicantAddress =
+                xslxData[3] == null ? "" : xslxData[3].toString();
+              excelData.district = 8;
+              excelData.taluka = parseInt(req.body.taluka);
+              excelData.village = parseInt(req.body.village);
+              excelData.applicationFullDate =
+                moment(new Date(xslxData[4])).format("yyyy-MM-DDThh:mm:ss") +
+                "Z";
+              excelData.applicationYear = new Date(xslxData[4])
+                .getFullYear()
+                .toString();
+              excelData.applicationMonth = (
+                new Date(xslxData[4]).getMonth() + 1
+              ).toString();
+              excelData.applicationDate = new Date(xslxData[4])
+                .getDate()
+                .toString();
+              excelData.oldServeNo =
+                xslxData[5] == null ? "" : xslxData[5].toString();
+              excelData.newServeNo =
+                xslxData[6] == null ? "" : xslxData[6].toString();
+              excelData.isAssign = false;
+              excelData.isCompleted = 3;
+              excelData.createdAt = new Date();
+              excelData.status = 1;
+              excelList.push(excelData);
             } else {
-              if (lengthArray == y + 1) {
+              if (lengthArray === index + 1) {
                 resolve();
               }
             }
-          }
+          });
+
+          ApplicationMasterModel.createMany(excelList, function (err) {
+            if (err) {
+              response.setError(AppCode.InternalServerError);
+              response.send(res);
+            } else {
+              response.setData(AppCode.Success);
+              response.send(res);
+            }
+          });
         });
         bar.then(() => {
           console.log(excelList);
@@ -685,9 +626,8 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
 
 const getApplicationList = (taluka, applicationYear) => {
   const promise = new Promise((resolve, reject) => {
-
     let condition = {};
-    if(taluka != "" || applicationYear != "") {
+    if (taluka != "" || applicationYear != "") {
       condition["$and"] = [];
     }
     if (taluka != "") {
@@ -702,46 +642,48 @@ const getApplicationList = (taluka, applicationYear) => {
     }
     let query = [
       {
-        $match: condition
+        $match: condition,
       },
       {
         $project: {
           _id: 1,
+        },
+      },
+    ];
+    ApplicationMasterModel.advancedAggregate(
+      query,
+      {},
+      (err, applicationData) => {
+        if (err) {
+          return reject(err);
         }
+        return resolve(applicationData);
       }
-    ]
-    ApplicationMasterModel.advancedAggregate(query, {}, (err, applicationData) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(applicationData);
-    });
+    );
   });
 
   return promise;
-}
+};
 
 /* ApplicationMaster List */
 applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
   const response = new HttpRespose();
   try {
-    
-    let taluka = ''
-    let applicationYear = ''
+    let taluka = "";
+    let applicationYear = "";
     if (!!req.query.taluka && req.query.taluka != "null") {
-      taluka = req.query.taluka
+      taluka = req.query.taluka;
     }
     if (!!req.query.applicationYear && req.query.applicationYear != "null") {
-      applicationYear = req.query.applicationYear
+      applicationYear = req.query.applicationYear;
     }
     let applicationList = [];
     getApplicationList(taluka, applicationYear).then((applicationData) => {
-      if (applicationData.length > 0) {   
+      if (applicationData.length > 0) {
         _.forEach(applicationData, (applicationId) => {
-          applicationList.push(ObjectID(applicationId._id))
-      });
+          applicationList.push(ObjectID(applicationId._id));
+        });
       }
-
 
       let condition = {};
       condition["$and"] = [];
@@ -754,7 +696,6 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
       condition["$and"].push({
         applicationId: { $in: applicationList },
       });
-
 
       if (!!req.query.sarveId && req.query.sarveId != "null") {
         condition["$and"].push({
@@ -793,7 +734,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
                         },
                       },
                     },
-  
+
                     {
                       $project: {
                         _id: 1,
@@ -822,7 +763,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
                         },
                       },
                     },
-  
+
                     {
                       $project: {
                         _id: 1,
@@ -886,7 +827,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
                   },
                 },
               },
-  
+
               {
                 $project: {
                   _id: 1,
@@ -941,10 +882,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
           response.send(res);
         }
       });
-    })
-
-
-
+    });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
