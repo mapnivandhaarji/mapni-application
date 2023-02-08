@@ -1034,12 +1034,10 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
   }
 };
 
-
 /* ApplicationMaster List */
 applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
   const response = new HttpRespose();
   try {
-
     let query = [
       {
         $match: {
@@ -1072,10 +1070,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
                   {
                     $match: {
                       $expr: {
-                        $eq: [
-                          "$talukaId",
-                          "$$taluka",
-                        ],
+                        $eq: ["$talukaId", "$$taluka"],
                       },
                     },
                   },
@@ -1083,6 +1078,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
                     $project: {
                       _id: 1,
                       talukaName: 1,
+                      districtName: 1,
                     },
                   },
                 ],
@@ -1105,10 +1101,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
                   {
                     $match: {
                       $expr: {
-                        $eq: [
-                          "$villageId",
-                          "$$village",
-                        ],
+                        $eq: ["$villageId", "$$village"],
                       },
                     },
                   },
@@ -1147,12 +1140,10 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
           submittedby: 1,
           isCompleted: 1,
           taluka: "$applicationMasterData.taluka",
-          talukaName:
-            "$applicationMasterData.talukaListData.talukaName",
-          villageName:
-            "$applicationMasterData.villageListData.villageName",
-          applicationYear:
-            "$applicationMasterData.applicationYear",
+          talukaName: "$applicationMasterData.talukaListData.talukaName",
+          districtName: "$applicationMasterData.talukaListData.districtName",
+          villageName: "$applicationMasterData.villageListData.villageName",
+          applicationYear: "$applicationMasterData.applicationYear",
         },
       },
       {
@@ -1167,7 +1158,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
             applicationYear: "$applicationYear",
             sarveId: "$sarveId",
           },
-          allData: {
+          sarveData: {
             $push: "$$ROOT",
           },
           applicationYear: {
@@ -1178,6 +1169,9 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
           },
           talukaName: {
             $first: "$talukaName",
+          },
+          districtName: {
+            $first: "$districtName",
           },
           villageName: {
             $first: "$villageName",
@@ -1194,10 +1188,10 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
           count: {
             $cond: {
               if: {
-                $isArray: "$allData",
+                $isArray: "$sarveData",
               },
               then: {
-                $size: "$allData",
+                $size: "$sarveData",
               },
               else: 0,
             },
@@ -1208,6 +1202,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
         $group: {
           _id: {
             taluka: "$talukaName",
+            applicationYear: "$applicationYear",
           },
           sarveData: {
             $push: "$$ROOT",
@@ -1221,24 +1216,31 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
           talukaName: {
             $first: "$talukaName",
           },
+          districtName: {
+            $first: "$districtName",
+          },
           villageName: {
             $first: "$villageName",
           },
         },
       },
-    ]
-      AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
-        if (err) {
-          throw err;
-        } else if (_.isEmpty(applicationMaster)) {
-          response.setError(AppCode.NotFound);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, applicationMaster);
-          response.send(res);
-        }
-      });
-
+      {
+        $sort: {
+          talukaName: 1,
+        },
+      },
+    ];
+    AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(applicationMaster)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, applicationMaster);
+        response.send(res);
+      }
+    });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
