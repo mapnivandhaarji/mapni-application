@@ -100,4 +100,12 @@ router
     ApplicationMasterCtrl.uniqueYearList
   );
 
+  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/applicationMasterCountforDashboard
+router
+  .route("/applicationMasterCountforDashboard")
+  .get(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.applicationMasterCountforDashboard
+  );
+
 module.exports = router;

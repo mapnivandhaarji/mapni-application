@@ -1095,4 +1095,215 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
     response.send(res);
   }
 };
+
+
+/* ApplicationMaster List */
+applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let query = [
+      {
+        $match: {
+          isSubmitted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "applicationMaster",
+          as: "applicationMasterData",
+          let: {
+            applicationId: "$applicationId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$applicationId"],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "talukaList",
+                as: "talukaListData",
+                let: {
+                  taluka: "$taluka",
+                },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: [
+                          "$talukaId",
+                          "$$taluka",
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      talukaName: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$talukaListData",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $lookup: {
+                from: "villageList",
+                as: "villageListData",
+                let: {
+                  village: "$village",
+                },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: [
+                          "$villageId",
+                          "$$village",
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      villageName: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$villageListData",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$applicationMasterData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          sarveId: 1,
+          applicationId: 1,
+          assignDate: 1,
+          isSubmitted: 1,
+          submittedDate: 1,
+          submittedby: 1,
+          isCompleted: 1,
+          taluka: "$applicationMasterData.taluka",
+          talukaName:
+            "$applicationMasterData.talukaListData.talukaName",
+          villageName:
+            "$applicationMasterData.villageListData.villageName",
+          applicationYear:
+            "$applicationMasterData.applicationYear",
+        },
+      },
+      {
+        $sort: {
+          applicationYear: -1,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            taluka: "$taluka",
+            applicationYear: "$applicationYear",
+            sarveId: "$sarveId",
+          },
+          allData: {
+            $push: "$$ROOT",
+          },
+          applicationYear: {
+            $first: "$applicationYear",
+          },
+          sarveId: {
+            $first: "$sarveId",
+          },
+          talukaName: {
+            $first: "$talukaName",
+          },
+          villageName: {
+            $first: "$villageName",
+          },
+        },
+      },
+      {
+        $sort: {
+          applicationYear: 1,
+        },
+      },
+      {
+        $addFields: {
+          count: {
+            $cond: {
+              if: {
+                $isArray: "$allData",
+              },
+              then: {
+                $size: "$allData",
+              },
+              else: 0,
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            taluka: "$talukaName",
+          },
+          sarveData: {
+            $push: "$$ROOT",
+          },
+          applicationYear: {
+            $first: "$applicationYear",
+          },
+          sarveId: {
+            $first: "$sarveId",
+          },
+          talukaName: {
+            $first: "$talukaName",
+          },
+          villageName: {
+            $first: "$villageName",
+          },
+        },
+      },
+    ]
+      AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(applicationMaster)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, applicationMaster);
+          response.send(res);
+        }
+      });
+
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
 module.exports = applicationMasterCtrl;
