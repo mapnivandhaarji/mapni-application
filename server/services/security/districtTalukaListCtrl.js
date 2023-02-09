@@ -3,7 +3,7 @@ const districtTalukaListModel =
   new (require("../../common/model/districtTalukaListModel"))();
 const talukaVillageListModel =
   new (require("../../common/model/talukaVillageListModel"))();
-  const ApplicationMasterModel =
+const ApplicationMasterModel =
   new (require("../../common/model/applicationMasterModel"))();
 const HttpRespose = require("../../common/httpResponse");
 const AppCode = require("../../common/constant/appCods");
@@ -159,9 +159,22 @@ districtTalukaListCtrl.talukaList = (req, res) => {
 districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
   const response = new HttpRespose();
   try {
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      status: 1,
+    });
+
+    if (req.query.isAssign) {
+      condition["$and"].push({
+        isAssign: false,
+      });
+    }
+
     let query = [
       {
-        $match: {},
+        $match: condition,
       },
       {
         $lookup: {
@@ -186,33 +199,33 @@ districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
               },
             },
           ],
-        }
+        },
       },
       {
         $unwind: {
           path: "$talukaListData",
           preserveNullAndEmptyArrays: true,
-        }
+        },
       },
       {
         $group: {
           _id: {
-            "taluka": "$talukaListData.talukaId"
+            taluka: "$talukaListData.talukaId",
           },
           districtName: {
-            $first: "$talukaListData.districtName"
+            $first: "$talukaListData.districtName",
           },
           talukaName: {
-            $first: "$talukaListData.talukaName"
+            $first: "$talukaListData.talukaName",
           },
           districtId: {
-            $first: "$talukaListData.districtId"
+            $first: "$talukaListData.districtId",
           },
           talukaId: {
-            $first: "$talukaListData.talukaId"
+            $first: "$talukaListData.talukaId",
           },
-        }
-      }
+        },
+      },
     ];
     ApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
       if (err) {
