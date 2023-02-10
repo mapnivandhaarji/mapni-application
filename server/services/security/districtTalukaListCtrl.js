@@ -165,6 +165,10 @@ districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
     condition["$and"].push({
       status: 1,
     });
+    
+    condition["$and"].push({
+      isCompleted: 3,
+    });
 
     if (req.query.isAssign) {
       condition["$and"].push({
