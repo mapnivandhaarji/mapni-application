@@ -997,9 +997,26 @@ applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
 applicationMasterCtrl.uniqueYearList = (req, res) => {
   const response = new HttpRespose();
   try {
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      status: 1,
+    });
+    
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
+    if (req.query.isAssign) {
+      condition["$and"].push({
+        isAssign: false,
+      });
+    }
+
     let query = [
       {
-        $match: {isCompleted: 3},
+        $match: condition,
       },
       {
         $group: {
