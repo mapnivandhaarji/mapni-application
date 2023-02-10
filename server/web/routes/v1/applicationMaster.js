@@ -108,4 +108,12 @@ router
     ApplicationMasterCtrl.applicationMasterCountforDashboard
   );
 
+  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/rejectApplicationMaster
+router
+  .route("/rejectApplicationMaster")
+  .post(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.rejectApplicationMaster
+  );
+
 module.exports = router;

@@ -277,6 +277,10 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
       status: 1,
     });
 
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
     if (req.query.isAssign) {
       condition["$and"].push({
         isAssign: false,
@@ -995,7 +999,7 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
   try {
     let query = [
       {
-        $match: {},
+        $match: {isCompleted: 3},
       },
       {
         $group: {
@@ -1042,6 +1046,7 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
       {
         $match: {
           isSubmitted: false,
+          isCompleted: 3
         },
       },
       {
@@ -1246,4 +1251,68 @@ applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
     response.send(res);
   }
 };
+
+/* Reject applicationMaster */
+applicationMasterCtrl.rejectApplicationMaster = (req, res) => {
+  const response = new HttpRespose();
+  try {
+    let query1 = { _id: ObjectID(req.body.applicationId) };
+  ApplicationMasterModel.updateOne( query1, { $set: { isCompleted: 2 } }, function (err, updateApplicationMaster) {
+      if (err) {
+        AppCode.Fail.error = err.message;
+        response.setError(AppCode.Fail);
+        response.send(res);
+      } else {
+        let query = [
+          {
+            $match: {
+              applicationId: ObjectID(req.body.applicationId),
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              applicationId: 1,
+            },
+          },
+        ];
+        AssignModel.advancedAggregate( query, {}, (err, assignList) => {
+            if (err) {
+              throw err;
+            } else if (_.isEmpty(assignList)) {
+              response.setError(AppCode.NotFound);
+              response.send(res);
+            } else {
+              assignList.forEach((assignData, index) => {
+                let query = { _id: ObjectID(assignData._id) };
+                AssignModel.updateOne( query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
+                    if (err) {
+                      console.log(err);
+                      // response.setError(AppCode.Fail);
+                      // response.send(res);
+                    } else {
+                      if (assignList.length - 1 == index) {
+                        response.setData(AppCode.Success);
+                        response.send(res);
+                      }
+                    }
+                  })
+    
+              })
+            }
+          }
+        );
+      }
+    }
+  );
+
+
+
+    
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 module.exports = applicationMasterCtrl;
