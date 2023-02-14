@@ -26,6 +26,9 @@ router.route("/talukaList").get(districtTalukaListCtrl.talukaList);
 //taluka List data  : http://localhost:3050/v1/districtTalukaVillageExcel/uniqueTalukaList
 router.route("/uniqueTalukaList").get(districtTalukaListCtrl.uniqueTalukaList);
 
+//taluka List for assign person data  : http://localhost:3050/v1/districtTalukaVillageExcel/uniqueAssignTalukaList
+router.route("/uniqueAssignTalukaList").get(districtTalukaListCtrl.uniqueAssignTalukaList);
+
 //taluka List data  : http://localhost:3050/v1/districtTalukaVillageExcel/uniqueVillageList
 router.route("/uniqueVillageList").get(districtTalukaListCtrl.uniqueVillageList);
 

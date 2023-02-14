@@ -63,7 +63,6 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                       response.setError(AppCode.NotFound);
                       response.send(res);
                     } else {
-                      console.log(xslxData);
                       let excelData = {};
                       excelData.MTRno = xslxData[0].toString();
                       excelData.applicantName = xslxData[1];
@@ -423,7 +422,6 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
         applicationYear: req.query.applicationYear,
       });
     }
-    console.log("condition", condition);
     let query = [
       {
         $match: condition,
@@ -695,7 +693,6 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
         isCompleted: 3,
       };
       let query = { _id: ObjectID(applicationId) };
-      console.log("id query application", query);
       ApplicationMasterModel.updateOne(
         query,
         { $set: { isAssign: data.isAssign } },
@@ -714,7 +711,6 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
                 console.log(err);
               } else {
                 if (assign !== null) {
-                  console.log("submitted data");
                   let obj1 = {
                     submittedby: data.sarveId,
                     submittedDate: data.assignDate,
@@ -819,7 +815,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     }
     let applicationList = [];
     getApplicationList(taluka, applicationYear).then((applicationData) => {
-      if (applicationData[0].data.length > 0) {
+      if (applicationData[0]?.data.length > 0) {
         applicationList = applicationData[0].data
       }
       let condition = {};
@@ -1187,6 +1183,91 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
   }
 };
 
+/*unique Year List */
+applicationMasterCtrl.uniqueYearListForAssignPerson = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let query = [
+      {
+        $match: {
+          $and: [
+            {
+              sarveId: ObjectID(
+                req.query.sarveId
+              ),
+            },
+            {
+              isSubmitted: false,
+            },
+            {
+              isCompleted: 3,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "applicationMaster",
+          as: "applicationData",
+          let: {
+            applicationId: "$applicationId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$applicationId"],
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$applicationData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          year: "$applicationData.applicationYear",
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: "$year",
+          },
+          year: {
+            $first: "$year",
+          },
+        },
+      },
+    ];
+    AssignModel.advancedAggregate(
+      query,
+      {},
+      (err, uniqueYearList) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(uniqueYearList)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, uniqueYearList);
+          response.send(res);
+        }
+      }
+    );
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 /* ApplicationMaster List */
 applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
   const response = new HttpRespose();
@@ -1412,45 +1493,62 @@ applicationMasterCtrl.rejectApplicationMaster = (req, res) => {
         response.setError(AppCode.Fail);
         response.send(res);
       } else {
-        let query = [
-          {
-            $match: {
-              applicationId: ObjectID(req.body.applicationId),
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              applicationId: 1,
-            },
-          },
-        ];
-        AssignModel.advancedAggregate(query, {}, (err, assignList) => {
+
+        console.log('....................', updateApplicationMaster);
+
+        AssignModel.findOne({ applicationId: ObjectID(req.body.applicationId) }, function (err, assignApplicationData) {
           if (err) {
-            throw err;
-          } else if (_.isEmpty(assignList)) {
-            response.setError(AppCode.NotFound);
+            console.log("err", err);
+            response.setError(AppCode.Fail);
             response.send(res);
           } else {
-            assignList.forEach((assignData, index) => {
-              let query = { _id: ObjectID(assignData._id) };
-              AssignModel.updateOne(query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
+            if (assignApplicationData === null) {
+              response.setData(AppCode.Success);
+              response.send(res);
+            }
+            else {
+              let query = [
+                {
+                  $match: {
+                    applicationId: ObjectID(req.body.applicationId),
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    applicationId: 1,
+                  },
+                },
+              ];
+              AssignModel.advancedAggregate(query, {}, (err, assignList) => {
                 if (err) {
-                  console.log(err);
-                  // response.setError(AppCode.Fail);
-                  // response.send(res);
+                  throw err;
+                } else if (_.isEmpty(assignList)) {
+                  response.setError(AppCode.NotFound);
+                  response.send(res);
                 } else {
-                  if (assignList.length - 1 == index) {
-                    response.setData(AppCode.Success);
-                    response.send(res);
-                  }
-                }
-              })
+                  assignList.forEach((assignData, index) => {
+                    let query = { _id: ObjectID(assignData._id) };
+                    AssignModel.updateOne(query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
+                      if (err) {
+                        console.log(err);
+                        // response.setError(AppCode.Fail);
+                        // response.send(res);
+                      } else {
+                        if (assignList.length - 1 == index) {
+                          response.setData(AppCode.Success);
+                          response.send(res);
+                        }
+                      }
+                    })
 
-            })
+                  })
+                }
+              }
+              );
+            }
           }
-        }
-        );
+        })
       }
     }
     );

@@ -5,6 +5,8 @@ const talukaVillageListModel =
   new (require("../../common/model/talukaVillageListModel"))();
 const ApplicationMasterModel =
   new (require("../../common/model/applicationMasterModel"))();
+const assignApplicationMasterModel =
+  new (require("../../common/model/assignModel"))();
 const HttpRespose = require("../../common/httpResponse");
 const AppCode = require("../../common/constant/appCods");
 const Logger = require("../../common/logger");
@@ -165,7 +167,7 @@ districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
     condition["$and"].push({
       status: 1,
     });
-    
+
     condition["$and"].push({
       isCompleted: 3,
     });
@@ -232,6 +234,126 @@ districtTalukaListCtrl.uniqueTalukaList = (req, res) => {
       },
     ];
     ApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(talukaList)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, talukaList);
+        response.send(res);
+      }
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
+districtTalukaListCtrl.uniqueAssignTalukaList = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let query = [
+      {
+        $match: {
+          $and: [
+            {
+              sarveId: ObjectID(req.query.sarveId),
+            },
+            {
+              isSubmitted: false,
+            },
+            {
+              isCompleted: 3,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "applicationMaster",
+          as: "applicationData",
+          let: {
+            applicationId: "$applicationId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$applicationId"],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "talukaList",
+                as: "talukaListData",
+                let: {
+                  taluka: "$taluka",
+                },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: [
+                          "$talukaId",
+                          "$$taluka",
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      talukaName: 1,
+                      talukaId: 1,
+                      districtName: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$talukaListData",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$applicationData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          taluka:
+            "$applicationData.talukaListData.talukaName",
+          talukaId:
+            "$applicationData.talukaListData.talukaId",
+        },
+      },
+      {
+        $group: {
+          _id: {
+            taluka: "$taluka",
+          },
+          talukaName: {
+            $first: "$taluka",
+          },
+          talukaId: {
+            $first: "$talukaId",
+          },
+        },
+      },
+    ]
+
+    assignApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
       if (err) {
         throw err;
       } else if (_.isEmpty(talukaList)) {
