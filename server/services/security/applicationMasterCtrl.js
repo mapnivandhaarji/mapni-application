@@ -819,7 +819,8 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     }
     let applicationList = [];
     getApplicationList(taluka, applicationYear).then((applicationData) => {
-      if (applicationData[0].data.length > 0) {
+      console.log('........................................................', applicationData);
+      if (applicationData[0]?.data.length > 0) {
         applicationList = applicationData[0].data
       }
       let condition = {};
