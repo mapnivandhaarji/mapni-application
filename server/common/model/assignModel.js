@@ -109,6 +109,24 @@ class assignModel extends ModelBase {
       model.aggregate(query).toArray(cb);
     });
   }
+
+  updateOne(query, data, cb) {
+    this.getModel(function (err, model) {
+      if (err) {
+        return cb(err);
+      }
+      model.updateOne(query, data, cb);
+    });
+  }
+
+  updateMany(query, data, cb) {
+    this.getModel(function (err, model) {
+      if (err) {
+        return cb(err);
+      }
+      model.updateMany(query, data, cb);
+    });
+  }
 }
 
 module.exports = assignModel;

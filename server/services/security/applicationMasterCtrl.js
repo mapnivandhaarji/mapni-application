@@ -1464,4 +1464,52 @@ applicationMasterCtrl.rejectApplicationMaster = (req, res) => {
   }
 };
 
+/* Reject applicationMaster */
+applicationMasterCtrl.rejectMultiApplicationMaster = (req, res) => {
+  const response = new HttpRespose();
+  const data = req.body;
+
+  try {
+    data.applicationId.forEach((applicationId, index) => {
+
+      let query1 = { _id: ObjectID(applicationId) };
+      ApplicationMasterModel.updateOne(query1, { $set: { isCompleted: 2 } }, function (err, updateApplicationMaster) {
+        if (err) {
+          AppCode.Fail.error = err.message;
+          response.setError(AppCode.Fail);
+          response.send(res);
+        } else {
+
+
+          let query = { applicationId: ObjectID(applicationId) };
+          AssignModel.updateMany(query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
+            if (err) {
+              console.log(err);
+              // response.setError(AppCode.Fail);
+              // response.send(res);
+            } else {
+              if (data.applicationId.length - 1 == index) {
+                response.setData(AppCode.Success);
+                response.send(res);
+              }
+            }
+          })
+
+
+
+        }
+      })
+
+
+    })
+
+
+
+
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 module.exports = applicationMasterCtrl;
