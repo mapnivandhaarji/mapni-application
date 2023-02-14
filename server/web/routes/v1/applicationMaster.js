@@ -92,7 +92,7 @@ router
     ApplicationMasterCtrl.assignHistorybyApplicationId
   );
 
-  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/uniqueYearList
+// applicationMaster delete details: http://localhost:3050/v1/applicationMaster/uniqueYearList
 router
   .route("/uniqueYearList")
   .get(
@@ -100,7 +100,15 @@ router
     ApplicationMasterCtrl.uniqueYearList
   );
 
-  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/applicationMasterCountforDashboard
+// applicationMaster delete details: http://localhost:3050/v1/applicationMaster/uniqueYearListForAssignPerson
+router
+  .route("/uniqueYearListForAssignPerson")
+  .get(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.uniqueYearListForAssignPerson
+  );
+
+// applicationMaster delete details: http://localhost:3050/v1/applicationMaster/applicationMasterCountforDashboard
 router
   .route("/applicationMasterCountforDashboard")
   .get(
@@ -108,7 +116,7 @@ router
     ApplicationMasterCtrl.applicationMasterCountforDashboard
   );
 
-  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/rejectApplicationMaster
+// applicationMaster delete details: http://localhost:3050/v1/applicationMaster/rejectApplicationMaster
 router
   .route("/rejectApplicationMaster")
   .post(

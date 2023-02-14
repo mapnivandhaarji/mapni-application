@@ -1181,6 +1181,91 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
   }
 };
 
+/*unique Year List */
+applicationMasterCtrl.uniqueYearListForAssignPerson = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let query = [
+      {
+        $match: {
+          $and: [
+            {
+              sarveId: ObjectID(
+                req.query.sarveId
+              ),
+            },
+            {
+              isSubmitted: false,
+            },
+            {
+              isCompleted: 3,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "applicationMaster",
+          as: "applicationData",
+          let: {
+            applicationId: "$applicationId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", "$$applicationId"],
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$applicationData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          year: "$applicationData.applicationYear",
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: "$year",
+          },
+          year: {
+            $first: "$year",
+          },
+        },
+      },
+    ];
+    AssignModel.advancedAggregate(
+      query,
+      {},
+      (err, uniqueYearList) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(uniqueYearList)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, uniqueYearList);
+          response.send(res);
+        }
+      }
+    );
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 /* ApplicationMaster List */
 applicationMasterCtrl.applicationMasterCountforDashboard = (req, res) => {
   const response = new HttpRespose();
