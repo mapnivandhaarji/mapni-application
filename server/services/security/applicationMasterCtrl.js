@@ -775,8 +775,18 @@ const getApplicationList = (taluka, applicationYear) => {
         $match: condition,
       },
       {
+        $group: {
+          _id: "",
+          //allData: {$push: "$$ROOT"},
+          data: {
+            $addToSet: "$_id",
+          },
+        },
+      },
+      {
         $project: {
-          _id: 1,
+          _id: 0,
+          data: 1,
         },
       },
     ];
@@ -809,12 +819,9 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
     }
     let applicationList = [];
     getApplicationList(taluka, applicationYear).then((applicationData) => {
-      if (applicationData.length > 0) {
-        _.forEach(applicationData, (applicationId) => {
-          applicationList.push(ObjectID(applicationId._id));
-        });
+      if (applicationData[0].data.length > 0) {
+        applicationList = applicationData[0].data
       }
-
       let condition = {};
       condition["$and"] = [];
       condition["$and"].push({
@@ -832,8 +839,7 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
           sarveId: ObjectID(req.query.sarveId),
         });
       }
-      console.log("applicationData", applicationList);
-      console.log("condition", condition);
+      // console.log("condition", condition);
       let query = [
         {
           $match: condition,
