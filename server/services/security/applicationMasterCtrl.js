@@ -35,59 +35,105 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
         var lengthArray = rows.length;
         var bar = new Promise((resolve) => {
           rows.forEach(function (xslxData, index) {
+
             if (index > 0) {
-              console.log(xslxData);
-              let excelData = {};
-              excelData.MTRno = xslxData[0].toString();
-              excelData.applicantName = xslxData[1];
-              excelData.applicantMobileNo =
-                xslxData[2] == null ? "" : xslxData[2].toString();
-              excelData.applicantAddress =
-                xslxData[3] == null ? "" : xslxData[3].toString();
-              excelData.district = 8;
-              excelData.taluka = parseInt(req.body.taluka);
-              excelData.village = parseInt(req.body.village);
-              excelData.applicationFullDate =
-                moment(new Date(xslxData[4])).format("yyyy-MM-DDThh:mm:ss") +
-                "Z";
-              excelData.applicationYear = new Date(xslxData[4])
-                .getFullYear()
-                .toString();
-              excelData.applicationMonth = (
-                new Date(xslxData[4]).getMonth() + 1
-              ).toString();
-              excelData.applicationDate = new Date(xslxData[4])
-                .getDate()
-                .toString();
-              excelData.oldServeNo =
-                xslxData[5] == null ? "" : xslxData[5].toString();
-              excelData.newServeNo =
-                xslxData[6] == null ? "" : xslxData[6].toString();
-              excelData.isAssign = false;
-              excelData.isCompleted = 3;
-              excelData.createdAt = new Date();
-              excelData.status = 1;
-              excelList.push(excelData);
-            } else {
-              if (lengthArray === index + 1) {
-                resolve();
+              try {
+
+                let query = [
+                  {
+                    $match: {
+                      $and: [
+                        {
+                          talukaId: parseInt(req.body.taluka),
+                        },
+                        {
+                          villageName: xslxData[7].toString().trim()
+                        }
+                      ]
+                    },
+                  },
+                ]
+                talukaVillageListModel.advancedAggregate(
+                  query,
+                  {},
+                  (err, villageList) => {
+                    if (err) {
+                      throw err;
+                    } else if (_.isEmpty(villageList)) {
+                      response.setError(AppCode.NotFound);
+                      response.send(res);
+                    } else {
+                      console.log(xslxData);
+                      let excelData = {};
+                      excelData.MTRno = xslxData[0].toString();
+                      excelData.applicantName = xslxData[1];
+                      excelData.applicantMobileNo =
+                        xslxData[2] == null ? "" : xslxData[2].toString();
+                      excelData.applicantAddress =
+                        xslxData[3] == null ? "" : xslxData[3].toString();
+                      excelData.district = 8;
+                      excelData.taluka = parseInt(req.body.taluka);
+                      excelData.village = villageList[0].villageId;
+                      excelData.applicationFullDate =
+                        moment(new Date(xslxData[4])).format("yyyy-MM-DDThh:mm:ss") +
+                        "Z";
+                      excelData.applicationYear = new Date(xslxData[4])
+                        .getFullYear()
+                        .toString();
+                      excelData.applicationMonth = (
+                        new Date(xslxData[4]).getMonth() + 1
+                      ).toString();
+                      excelData.applicationDate = new Date(xslxData[4])
+                        .getDate()
+                        .toString();
+                      excelData.oldServeNo =
+                        xslxData[5] == null ? "" : xslxData[5].toString();
+                      excelData.newServeNo =
+                        xslxData[6] == null ? "" : xslxData[6].toString();
+                      excelData.isAssign = false;
+                      excelData.isCompleted = 3;
+                      excelData.createdAt = new Date();
+                      excelData.status = 1;
+
+                      excelList.push(excelData);
+                    }
+
+                    if (lengthArray === index + 1) {
+                      async.waterfall(
+                        [
+                          function (callback) {
+                            ApplicationMasterModel.createMany(excelList, function (err) {
+                              if (err) {
+                                response.setError(AppCode.InternalServerError);
+                                response.send(res);
+                                callback()
+                              } else {
+                                response.setData(AppCode.Success);
+                                response.send(res);
+                                callback()
+                              }
+                            });
+                          }
+                        ])
+
+                      bar.then(() => {
+                        console.log(excelList);
+                      });
+                    }
+                  }
+                );
+
+
+              } catch (exception) {
+                response.setError(AppCode.InternalServerError);
+                response.send(res);
               }
             }
           });
 
-          ApplicationMasterModel.createMany(excelList, function (err) {
-            if (err) {
-              response.setError(AppCode.InternalServerError);
-              response.send(res);
-            } else {
-              response.setData(AppCode.Success);
-              response.send(res);
-            }
-          });
+
         });
-        bar.then(() => {
-          console.log(excelList);
-        });
+
       }
       //   console.log(rows)
     });
@@ -97,6 +143,86 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
     response.send(res);
   }
 };
+
+// applicationMasterCtrl.applicationExcelUpload = (req, res) => {
+//   const response = new HttpRespose();
+
+//   try {
+//     if (!!req.files.applicationExcelUpload) {
+//       req.body.applicationExcelUpload =
+//         req.files.applicationExcelUpload[0].filename;
+//     }
+
+//     readXlsxFile(req.files.applicationExcelUpload[0].path).then((rows) => {
+//       if (rows.length > 0) {
+//         let excelList = [];
+//         var lengthArray = rows.length;
+//         var bar = new Promise((resolve) => {
+//           rows.forEach(function (xslxData, index) {
+//             if (index > 0) {
+//               console.log(xslxData);
+//               let excelData = {};
+//               excelData.MTRno = xslxData[0].toString();
+//               excelData.applicantName = xslxData[1];
+//               excelData.applicantMobileNo =
+//                 xslxData[2] == null ? "" : xslxData[2].toString();
+//               excelData.applicantAddress =
+//                 xslxData[3] == null ? "" : xslxData[3].toString();
+//               excelData.district = 8;
+//               excelData.taluka = parseInt(req.body.taluka);
+//               excelData.village = parseInt(req.body.village);
+//               excelData.applicationFullDate =
+//                 moment(new Date(xslxData[4])).format("yyyy-MM-DDThh:mm:ss") +
+//                 "Z";
+//               excelData.applicationYear = new Date(xslxData[4])
+//                 .getFullYear()
+//                 .toString();
+//               excelData.applicationMonth = (
+//                 new Date(xslxData[4]).getMonth() + 1
+//               ).toString();
+//               excelData.applicationDate = new Date(xslxData[4])
+//                 .getDate()
+//                 .toString();
+//               excelData.oldServeNo =
+//                 xslxData[5] == null ? "" : xslxData[5].toString();
+//               excelData.newServeNo =
+//                 xslxData[6] == null ? "" : xslxData[6].toString();
+//               excelData.isAssign = false;
+//               excelData.isCompleted = 3;
+//               excelData.createdAt = new Date();
+//               excelData.status = 1;
+//               excelList.push(excelData);
+//             } else {
+//               if (lengthArray === index + 1) {
+//                 resolve();
+//               }
+//             }
+//           });
+
+//           ApplicationMasterModel.createMany(excelList, function (err) {
+//             if (err) {
+//               response.setError(AppCode.InternalServerError);
+//               response.send(res);
+//             } else {
+//               response.setData(AppCode.Success);
+//               response.send(res);
+//             }
+//           });
+//         });
+//         bar.then(() => {
+//           console.log(excelList);
+//         });
+//       }
+//       //   console.log(rows)
+//     });
+
+
+//   } catch (exception) {
+//     console.log(exception);
+//     response.setError(AppCode.InternalServerError);
+//     response.send(res);
+//   }
+// };
 
 /* applicationMaster Create */
 applicationMasterCtrl.applicationMasterCreate = (req, res) => {
@@ -1009,7 +1135,7 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
     condition["$and"].push({
       status: 1,
     });
-    
+
     condition["$and"].push({
       isCompleted: 3,
     });
@@ -1280,7 +1406,7 @@ applicationMasterCtrl.rejectApplicationMaster = (req, res) => {
   const response = new HttpRespose();
   try {
     let query1 = { _id: ObjectID(req.body.applicationId) };
-  ApplicationMasterModel.updateOne( query1, { $set: { isCompleted: 2 } }, function (err, updateApplicationMaster) {
+    ApplicationMasterModel.updateOne(query1, { $set: { isCompleted: 2 } }, function (err, updateApplicationMaster) {
       if (err) {
         AppCode.Fail.error = err.message;
         response.setError(AppCode.Fail);
@@ -1299,39 +1425,39 @@ applicationMasterCtrl.rejectApplicationMaster = (req, res) => {
             },
           },
         ];
-        AssignModel.advancedAggregate( query, {}, (err, assignList) => {
-            if (err) {
-              throw err;
-            } else if (_.isEmpty(assignList)) {
-              response.setError(AppCode.NotFound);
-              response.send(res);
-            } else {
-              assignList.forEach((assignData, index) => {
-                let query = { _id: ObjectID(assignData._id) };
-                AssignModel.updateOne( query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
-                    if (err) {
-                      console.log(err);
-                      // response.setError(AppCode.Fail);
-                      // response.send(res);
-                    } else {
-                      if (assignList.length - 1 == index) {
-                        response.setData(AppCode.Success);
-                        response.send(res);
-                      }
-                    }
-                  })
-    
+        AssignModel.advancedAggregate(query, {}, (err, assignList) => {
+          if (err) {
+            throw err;
+          } else if (_.isEmpty(assignList)) {
+            response.setError(AppCode.NotFound);
+            response.send(res);
+          } else {
+            assignList.forEach((assignData, index) => {
+              let query = { _id: ObjectID(assignData._id) };
+              AssignModel.updateOne(query, { $set: { isCompleted: 2 } }, function (err, updateAssignData) {
+                if (err) {
+                  console.log(err);
+                  // response.setError(AppCode.Fail);
+                  // response.send(res);
+                } else {
+                  if (assignList.length - 1 == index) {
+                    response.setData(AppCode.Success);
+                    response.send(res);
+                  }
+                }
               })
-            }
+
+            })
           }
+        }
         );
       }
     }
-  );
+    );
 
 
 
-    
+
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
