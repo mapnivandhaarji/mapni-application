@@ -124,4 +124,12 @@ router
     ApplicationMasterCtrl.rejectApplicationMaster
   );
 
+  // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/rejectMultiApplicationMaster
+router
+  .route("/rejectMultiApplicationMaster")
+  .post(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.rejectMultiApplicationMaster
+  );
+
 module.exports = router;
