@@ -59,12 +59,10 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                   (err, villageList) => {
                     if (err) {
                       throw err;
-                    } else if (_.isEmpty(villageList)) {
-                      response.setError(AppCode.NotFound);
-                      response.send(res);
-                    } else {
+                    }
+                    else {
                       let excelData = {};
-                      excelData.MTRno = xslxData[0].toString();
+                      excelData.MTRno = xslxData[0] ? xslxData[0].toString() : null;
                       excelData.applicantName = xslxData[1];
                       excelData.applicantMobileNo =
                         xslxData[2] == null ? "" : xslxData[2].toString();
@@ -72,7 +70,7 @@ applicationMasterCtrl.applicationExcelUpload = (req, res) => {
                         xslxData[3] == null ? "" : xslxData[3].toString();
                       excelData.district = 8;
                       excelData.taluka = parseInt(req.body.taluka);
-                      excelData.village = villageList[0].villageId;
+                      excelData.village = villageList[0]?.villageId;
                       excelData.applicationFullDate =
                         moment(new Date(xslxData[4])).format("yyyy-MM-DDThh:mm:ss") +
                         "Z";
