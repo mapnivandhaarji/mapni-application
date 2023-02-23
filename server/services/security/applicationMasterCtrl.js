@@ -393,6 +393,59 @@ applicationMasterCtrl.applicationMasterDetailsById = (req, res) => {
 applicationMasterCtrl.applicationMasterList = (req, res) => {
   const response = new HttpRespose();
   try {
+
+    let options = {};
+    let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
+    let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
+    let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : "";
+    let sort = {};
+    if (sortField == "applicantName") {
+      sort = {
+        applicantName: sortDirection
+      }
+    }
+    if (sortField == "talukaName") {
+      sort = {
+        talukaName: sortDirection
+      }
+    }
+    if (sortField == "villageName") {
+      sort = {
+        villageName: sortDirection
+      }
+    }
+    if (sortField == "applicationFullDate") {
+      sort = {
+        applicationFullDate: sortDirection
+      }
+    }
+    if (sortField == "MTRno") {
+      sort = {
+        MTRno: sortDirection
+      }
+    }
+    if (sortField == "applicantMobileNo") {
+      sort = {
+        applicantMobileNo: sortDirection
+      }
+    }
+    if (sortField == "newServeNo") {
+      sort = {
+        newServeNo: sortDirection
+      }
+    }
+    if (sortField == "oldServeNo") {
+      sort = {
+        oldServeNo: sortDirection
+      }
+    }
+
+    let pageNumber = !!req.body.pageNumber ? (parseInt(req.body.pageNumber) - 1) : 0;
+    let limit = !!req.body.pageSize ? parseInt(req.body.pageSize) : 50;
+    let skip = limit * parseInt(pageNumber);
+    options.skip = skip;
+    options.limit = limit;
+
     let condition = {};
     condition["$and"] = [];
 
@@ -404,22 +457,65 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
       isCompleted: 3,
     });
 
-    if (req.query.isAssign) {
+    if (req.body.isAssign) {
       condition["$and"].push({
         isAssign: false,
       });
     }
 
-    if (!!req.query.taluka && req.query.taluka != "null") {
+    if (!!req.body.taluka && req.body.taluka != "null") {
       condition["$and"].push({
-        taluka: parseInt(req.query.taluka),
+        taluka: parseInt(req.body.taluka),
       });
     }
-    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+
+    if (!!req.body.village && req.body.village != "null") {
       condition["$and"].push({
-        applicationYear: req.query.applicationYear,
+        village: parseInt(req.body.village),
       });
     }
+    if (!!req.body.applicationYear && req.body.applicationYear != "null") {
+      condition["$and"].push({
+        applicationYear: req.body.applicationYear,
+      });
+    }
+    if (!!req.body.searchKey && req.body.searchKey != "") {
+      condition["$and"].push({
+        $or: [
+          {
+            applicantName: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            MTRno: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            applicantMobileNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            newServeNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            oldServeNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+        ],
+      });
+    }
+    console.log("condition", condition);
     let query = [
       {
         $match: condition,
@@ -506,22 +602,68 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
           updatedAt: 1,
         },
       },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: limit },
     ];
-    ApplicationMasterModel.advancedAggregate(
-      query,
-      {},
-      (err, applicationMaster) => {
+
+    let result = {};
+    async.parallel(
+      [
+        function (cb) {
+          // UserModel.advancedAggregate(countQuery, {}, (err, countData) => {
+          ApplicationMasterModel.count(condition, (err, countData) => {
+            if (err) {
+              throw err;
+            } else if (options.skip === 0 && countData === 0) {
+              result.totaldata = 0;
+              cb(null);
+            } else if (options.skip > 0 && countData === 0) {
+              result.totaldata = 0;
+              cb(null);
+            } else {
+              console.log("---------", countData)
+              if (countData <= skip + limit) {
+                result.totaldata = countData;
+              } else {
+                result.totaldata = countData;
+              }
+              cb(null);
+
+            }
+          });
+        },
+        function (cb) {
+          ApplicationMasterModel.aggregate(query, (err, applicationMaster) => {
+            console.log("applicationMaster", applicationMaster);
+            if (err) {
+              throw err;
+            } else if (options.skip === 0 && _.isEmpty(applicationMaster)) {
+              cb(null);
+            } else if (options.skip > 0 && _.isEmpty(applicationMaster)) {
+              cb(null);
+            } else {
+              result.result = applicationMaster;
+              cb(null);
+            }
+          }
+          );
+        }
+      ],
+      function (err) {
         if (err) {
           throw err;
-        } else if (_.isEmpty(applicationMaster)) {
-          response.setError(AppCode.NotFound);
+        } else if (options.skip === 0 && _.isEmpty(result.result)) {
+          response.setData(AppCode.NotFound, result);
+          response.send(res);
+        } else if (options.skip > 0 && _.isEmpty(result.result)) {
+          response.setData(AppCode.NotFound, result);
           response.send(res);
         } else {
-          response.setData(AppCode.Success, applicationMaster);
+          response.setData(AppCode.Success, result);
           response.send(res);
         }
-      }
-    );
+      })
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
@@ -684,6 +826,19 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   try {
     data.applicationId.forEach((applicationId, index) => {
       let obj = {
+        applicantName: data.applicantName,
+        applicantMobileNo: data.applicantMobileNo,
+        applicantAddress: data.applicantAddress,
+        district: data.district,
+        taluka: data.taluka,
+        village: data.village,
+        applicationFullDate: data.applicationFullDate,
+        applicationYear: data.applicationYear,
+        applicationMonth: data.applicationMonth,
+        applicationDate: data.applicationDate,
+        newServeNo: data.newServeNo,
+        oldServeNo: data.oldServeNo,
+        MTRno: data.MTRno,
         sarveId: data.sarveId,
         applicationId: ObjectID(applicationId),
         assignDate: data.assignDate,
@@ -748,15 +903,20 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   }
 };
 
-const getApplicationList = (taluka, applicationYear) => {
+const getApplicationList = (taluka, village, applicationYear) => {
   const promise = new Promise((resolve, reject) => {
     let condition = {};
-    if (taluka != "" || applicationYear != "") {
+    if (taluka != "" || village != "" || applicationYear != "") {
       condition["$and"] = [];
     }
     if (taluka != "") {
       condition["$and"].push({
         taluka: parseInt(taluka),
+      });
+    }
+    if (village != "") {
+      condition["$and"].push({
+        village: parseInt(village),
       });
     }
     if (applicationYear != "") {
@@ -804,18 +964,79 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
   const response = new HttpRespose();
   try {
     let taluka = "";
+    let village = "";
     let applicationYear = "";
-    if (!!req.query.taluka && req.query.taluka != "null") {
-      taluka = req.query.taluka;
+    if (!!req.body.taluka && req.body.taluka != "null") {
+      taluka = req.body.taluka;
     }
-    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
-      applicationYear = req.query.applicationYear;
+    if (!!req.body.village && req.body.village != "null") {
+      village = req.body.village;
+    }
+    if (!!req.body.applicationYear && req.body.applicationYear != "null") {
+      applicationYear = req.body.applicationYear;
     }
     let applicationList = [];
-    getApplicationList(taluka, applicationYear).then((applicationData) => {
+    getApplicationList(taluka,village, applicationYear).then((applicationData) => {
       if (applicationData[0]?.data.length > 0) {
         applicationList = applicationData[0].data
       }
+
+      let options = {};
+      let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
+      let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
+      let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : "";
+      let sort = {};
+      if (sortField == "applicantName") {
+        sort = {
+          applicantName: sortDirection
+        }
+      }
+      if (sortField == "talukaName") {
+        sort = {
+          talukaName: sortDirection
+        }
+      }
+      if (sortField == "villageName") {
+        sort = {
+          villageName: sortDirection
+        }
+      }
+      if (sortField == "applicationFullDate") {
+        sort = {
+          applicationFullDate: sortDirection
+        }
+      }
+      if (sortField == "MTRno") {
+        sort = {
+          MTRno: sortDirection
+        }
+      }
+      if (sortField == "applicantMobileNo") {
+        sort = {
+          applicantMobileNo: sortDirection
+        }
+      }
+      if (sortField == "newServeNo") {
+        sort = {
+          newServeNo: sortDirection
+        }
+      }
+      if (sortField == "oldServeNo") {
+        sort = {
+          oldServeNo: sortDirection
+        }
+      } else {
+        sort = {
+          applicantName: -1
+        }
+      }
+
+      let pageNumber = !!req.body.pageNumber ? (parseInt(req.body.pageNumber) - 1) : 0;
+      let limit = !!req.body.pageSize ? parseInt(req.body.pageSize) : 50;
+      let skip = limit * parseInt(pageNumber);
+      options.skip = skip;
+      options.limit = limit;
+
       let condition = {};
       condition["$and"] = [];
       condition["$and"].push({
@@ -828,9 +1049,47 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
         applicationId: { $in: applicationList },
       });
 
-      if (!!req.query.sarveId && req.query.sarveId != "null") {
+      if (!!req.body.sarveId && req.body.sarveId != "null") {
         condition["$and"].push({
-          sarveId: ObjectID(req.query.sarveId),
+          sarveId: ObjectID(req.body.sarveId),
+        });
+      }
+
+      if (!!req.body.searchKey && req.body.searchKey != "") {
+        condition["$and"].push({
+          $or: [
+            {
+              applicantName: new RegExp(
+                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+                "i"
+              ),
+            },
+
+            {
+              MTRno: new RegExp(
+                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+                "i"
+              ),
+            },
+            {
+              applicantMobileNo: new RegExp(
+                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+                "i"
+              ),
+            },
+            {
+              newServeNo: new RegExp(
+                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+                "i"
+              ),
+            },
+            {
+              oldServeNo: new RegExp(
+                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+                "i"
+              ),
+            },
+          ],
         });
       }
       // console.log("condition", condition);
@@ -1000,18 +1259,77 @@ applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
             updatedAt: 1,
           },
         },
+        { $sort: sort },
+        { $skip: skip },
+        { $limit: limit },
       ];
-      AssignModel.advancedAggregate(query, {}, (err, applicationMaster) => {
-        if (err) {
-          throw err;
-        } else if (_.isEmpty(applicationMaster)) {
-          response.setError(AppCode.NotFound);
-          response.send(res);
-        } else {
-          response.setData(AppCode.Success, applicationMaster);
-          response.send(res);
+
+      let result = {};
+      async.parallel(
+        [
+          function (cb) {
+            // UserModel.advancedAggregate(countQuery, {}, (err, countData) => {
+            AssignModel.count(condition, (err, countData) => {
+              if (err) {
+                throw err;
+              } else if (options.skip === 0 && countData === 0) {
+                result.totaldata = 0;
+                cb(null);
+              } else if (options.skip > 0 && countData === 0) {
+                result.totaldata = 0;
+                cb(null);
+              } else {
+                console.log("---------", countData)
+                if (countData <= skip + limit) {
+                  result.totaldata = countData;
+                } else {
+                  result.totaldata = countData;
+                }
+                cb(null);
+
+              }
+            });
+          },
+          function (cb) {
+            AssignModel.aggregate(query, (err, applicationMaster) => {
+              if (err) {
+                throw err;
+              } else if (options.skip === 0 && _.isEmpty(applicationMaster)) {
+                cb(null);
+              } else if (options.skip > 0 && _.isEmpty(applicationMaster)) {
+                cb(null);
+              } else {
+                result.result = applicationMaster;
+                cb(null);
+              }
+            });
+
+          }
+        ],
+        function (err) {
+          if (err) {
+            throw err;
+          } else if (options.skip === 0 && _.isEmpty(result.result)) {
+            response.setData(AppCode.NotFound, result);
+            response.send(res);
+          } else if (options.skip > 0 && _.isEmpty(result.result)) {
+            response.setData(AppCode.NotFound, result);
+            response.send(res);
+          } else {
+            response.setData(AppCode.Success, result);
+            response.send(res);
+          }
         }
-      });
+      );
+
+
+
+
+
+
+
+
+
     });
   } catch (exception) {
     response.setError(AppCode.InternalServerError);

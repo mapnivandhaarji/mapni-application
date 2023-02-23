@@ -42,7 +42,7 @@ router
 // applicationMaster List data  : http://localhost:3050/v1/applicationMaster/applicationMasterList
 router
   .route("/applicationMasterList")
-  .get(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.applicationMasterList);
+  .post(CONFIG.JWTTOKENALLOWACCESS, ApplicationMasterCtrl.applicationMasterList);
 
 // applicationMaster Active-Deactive data  : http://localhost:3050/v1/applicationMaster/applicationMasterActiveDeactive
 router
@@ -79,7 +79,7 @@ router
 // applicationMaster delete details: http://localhost:3050/v1/applicationMaster/applicationMasterListforAssign
 router
   .route("/applicationMasterListforAssign")
-  .get(
+  .post(
     CONFIG.JWTTOKENALLOWACCESS,
     ApplicationMasterCtrl.applicationMasterListforAssign
   );
