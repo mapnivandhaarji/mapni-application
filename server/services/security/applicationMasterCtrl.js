@@ -2223,4 +2223,134 @@ applicationMasterCtrl.rejectMultiApplicationMaster = (req, res) => {
   }
 };
 
+
+
+/* applicationMaster Export*/
+applicationMasterCtrl.applicationMasterExport = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+
+    if (!!req.query.village && req.query.village != "null") {
+      condition["$and"].push({
+        village: parseInt(req.query.village),
+      });
+    }
+
+    if (!!req.query.applicationYear && req.query.applicationYear != "null") {
+      condition["$and"].push({
+        applicationYear: req.query.applicationYear,
+      });
+    }
+
+    let query = [
+      {
+        $match: condition
+      },
+      {
+        $lookup: {
+          from: "assignApplication",
+          as: "assignApplicationData",
+          let: {
+            applicationId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [
+                    "$applicationId",
+                    "$$applicationId",
+                  ],
+                },
+                isSubmitted: false,
+              },
+            },
+            {
+              $lookup: {
+                from: "sarveMaster",
+                as: "sarveMasterData",
+                let: {
+                  sarveId: "$sarveId",
+                },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$_id", "$$sarveId"],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$sarveMasterData",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                sarveId: 1,
+                sarveName: "$sarveMasterData.name",
+                applicationId: 1,
+                assignDate: 1,
+                isSubmitted: 1,
+                submittedDate: 1,
+                submittedby: 1,
+                submittedbyName:
+                  "$submittedbyData.name",
+                isCompleted: 1,
+              },
+            },
+            {
+              $sort: {
+                submittedDate: 1,
+              },
+            },
+          ],
+        },
+      },
+    ];
+    ApplicationMasterModel.advancedAggregate(
+      query,
+      {},
+      (err, applicationMaster) => {
+        if (err) {
+          throw err;
+        } else if (_.isEmpty(applicationMaster)) {
+          response.setError(AppCode.NotFound);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, applicationMaster);
+          response.send(res);
+        }
+      }
+    );
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 module.exports = applicationMasterCtrl;

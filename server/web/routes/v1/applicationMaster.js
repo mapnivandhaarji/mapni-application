@@ -39,6 +39,14 @@ router
     ApplicationMasterCtrl.applicationMasterDetailsById
   );
 
+// applicationMaster Details By Id data  : http://localhost:3050/v1/applicationMaster/applicationMasterExport
+router
+  .route("/applicationMasterExport")
+  .get(
+    CONFIG.JWTTOKENALLOWACCESS,
+    ApplicationMasterCtrl.applicationMasterExport
+  );
+
 // applicationMaster List data  : http://localhost:3050/v1/applicationMaster/applicationMasterList
 router
   .route("/applicationMasterList")
