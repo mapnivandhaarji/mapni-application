@@ -272,52 +272,28 @@ districtTalukaListCtrl.uniqueAssignTalukaList = (req, res) => {
       },
       {
         $lookup: {
-          from: "applicationMaster",
-          as: "applicationData",
+          from: "talukaList",
+          as: "talukaListData",
           let: {
-            applicationId: "$applicationId",
+            taluka: "$taluka",
           },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $eq: ["$_id", "$$applicationId"],
+                  $eq: [
+                    "$talukaId",
+                    "$$taluka",
+                  ],
                 },
               },
             },
             {
-              $lookup: {
-                from: "talukaList",
-                as: "talukaListData",
-                let: {
-                  taluka: "$taluka",
-                },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: [
-                          "$talukaId",
-                          "$$taluka",
-                        ],
-                      },
-                    },
-                  },
-                  {
-                    $project: {
-                      _id: 1,
-                      talukaName: 1,
-                      talukaId: 1,
-                      districtName: 1,
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $unwind: {
-                path: "$talukaListData",
-                preserveNullAndEmptyArrays: true,
+              $project: {
+                _id: 1,
+                talukaName: 1,
+                talukaId: 1,
+                districtName: 1,
               },
             },
           ],
@@ -325,17 +301,18 @@ districtTalukaListCtrl.uniqueAssignTalukaList = (req, res) => {
       },
       {
         $unwind: {
-          path: "$applicationData",
+          path: "$talukaListData",
           preserveNullAndEmptyArrays: true,
         },
       },
+
       {
         $project: {
           _id: 0,
           taluka:
-            "$applicationData.talukaListData.talukaName",
+            "$talukaListData.talukaName",
           talukaId:
-            "$applicationData.talukaListData.talukaId",
+            "$talukaListData.talukaId",
         },
       },
       {
@@ -370,15 +347,136 @@ districtTalukaListCtrl.uniqueAssignTalukaList = (req, res) => {
   }
 };
 
+// village unique assign list
+districtTalukaListCtrl.uniqueAssignVillageList = (req, res) => {
+  const response = new HttpRespose();
+  try {
+
+    let query = [
+      {
+        $match: {
+          $and: [
+            {
+              sarveId: ObjectID(req.query.sarveId),
+            },
+            {
+              isSubmitted: false,
+            },
+            {
+              isCompleted: 3,
+            },
+            {
+              taluka: parseInt(req.query.taluka),
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: {
+            village: "$village",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [
+                    "$villageId",
+                    "$$village",
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+                villageId: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          village:
+            "$villageListData.villageName",
+          villageId:
+            "$villageListData.villageId",
+        },
+      },
+      {
+        $group: {
+          _id: {
+            village: "$village",
+          },
+          villageName: {
+            $first: "$village",
+          },
+          villageId: {
+            $first: "$villageId",
+          },
+        },
+      },
+    ]
+
+    assignApplicationMasterModel.advancedAggregate(query, {}, (err, villageList) => {
+      if (err) {
+        throw err;
+      } else if (_.isEmpty(villageList)) {
+        response.setError(AppCode.NotFound);
+        response.send(res);
+      } else {
+        response.setData(AppCode.Success, villageList);
+        response.send(res);
+      }
+    });
+  } catch (exception) {
+    response.setError(AppCode.InternalServerError);
+    response.send(res);
+  }
+};
+
 /*unique Village List */
 districtTalukaListCtrl.uniqueVillageList = (req, res) => {
   const response = new HttpRespose();
   try {
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      status: 1,
+    });
+
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
+    if (req.query.isAssign) {
+      condition["$and"].push({
+        isAssign: false,
+      });
+    }
+
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+
     let query = [
       {
-        $match: {
-          taluka: parseInt(req.query.talukaId),
-        },
+        $match: condition
       },
       {
         $lookup: {
@@ -438,14 +536,14 @@ districtTalukaListCtrl.uniqueVillageList = (req, res) => {
         },
       },
     ];
-    ApplicationMasterModel.advancedAggregate(query, {}, (err, talukaList) => {
+    ApplicationMasterModel.advancedAggregate(query, {}, (err, villageLisst) => {
       if (err) {
         throw err;
-      } else if (_.isEmpty(talukaList)) {
+      } else if (_.isEmpty(villageLisst)) {
         response.setError(AppCode.NotFound);
         response.send(res);
       } else {
-        response.setData(AppCode.Success, talukaList);
+        response.setData(AppCode.Success, villageLisst);
         response.send(res);
       }
     });

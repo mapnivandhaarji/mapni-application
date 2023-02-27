@@ -397,7 +397,7 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
     let options = {};
     let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
     let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
-    let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : "";
+    let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : -1;
     let sort = {};
     if (sortField == "applicantName") {
       sort = {
@@ -457,7 +457,7 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
       isCompleted: 3,
     });
 
-    if (req.body.isAssign) {
+    if (req.body.isAssign == false || req.body.isAssign != 'null') {
       condition["$and"].push({
         isAssign: false,
       });
@@ -593,7 +593,13 @@ applicationMasterCtrl.applicationMasterList = (req, res) => {
           applicationDate: 1,
           newServeNo: 1,
           oldServeNo: 1,
-          MTRno: 1,
+          MTRno: {
+            $convert: {
+              input: "$MTRno",
+              to: "int",
+              onError: '*'
+            }
+          },
           isAssign: 1,
           talukaName: "$talukaListData.talukaName",
           villageName: "$villageListData.villageName",
@@ -826,26 +832,26 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
   try {
     data.applicationId.forEach((applicationId, index) => {
       let obj = {
-        applicantName: data.applicantName,
-        applicantMobileNo: data.applicantMobileNo,
-        applicantAddress: data.applicantAddress,
-        district: data.district,
-        taluka: data.taluka,
-        village: data.village,
-        applicationFullDate: data.applicationFullDate,
-        applicationYear: data.applicationYear,
-        applicationMonth: data.applicationMonth,
-        applicationDate: data.applicationDate,
-        newServeNo: data.newServeNo,
-        oldServeNo: data.oldServeNo,
-        MTRno: data.MTRno,
+        applicantName: applicationId.applicantName,
+        applicantMobileNo: applicationId.applicantMobileNo,
+        applicantAddress: applicationId.applicantAddress,
+        district: applicationId.district,
+        taluka: applicationId.taluka,
+        village: applicationId.village,
+        applicationFullDate: applicationId.applicationFullDate,
+        applicationYear: applicationId.applicationYear,
+        applicationMonth: applicationId.applicationMonth,
+        applicationDate: applicationId.applicationDate,
+        newServeNo: applicationId.newServeNo,
+        oldServeNo: applicationId.oldServeNo,
+        MTRno: applicationId.MTRno.toString(),
         sarveId: data.sarveId,
-        applicationId: ObjectID(applicationId),
+        applicationId: ObjectID(applicationId._id),
         assignDate: data.assignDate,
         isSubmitted: false,
         isCompleted: 3,
       };
-      let query = { _id: ObjectID(applicationId) };
+      let query = { _id: ObjectID(applicationId._id) };
       ApplicationMasterModel.updateOne(
         query,
         { $set: { isAssign: data.isAssign } },
@@ -856,7 +862,7 @@ applicationMasterCtrl.assignApplicationMaster = (req, res) => {
             // response.send(res);
           } else {
             let query1 = {
-              applicationId: ObjectID(applicationId),
+              applicationId: ObjectID(applicationId._id),
               isSubmitted: false,
             };
             AssignModel.findOne(query1, {}, (err, assign) => {
@@ -960,382 +966,674 @@ const getApplicationList = (taluka, village, applicationYear) => {
 };
 
 /* ApplicationMaster List */
+// applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
+//   const response = new HttpRespose();
+//   try {
+//     let taluka = "";
+//     let village = "";
+//     let applicationYear = "";
+//     if (!!req.body.taluka && req.body.taluka != "null") {
+//       taluka = req.body.taluka;
+//     }
+//     if (!!req.body.village && req.body.village != "null") {
+//       village = req.body.village;
+//     }
+//     if (!!req.body.applicationYear && req.body.applicationYear != "null") {
+//       applicationYear = req.body.applicationYear;
+//     }
+//     let applicationList = [];
+//     getApplicationList(taluka, village, applicationYear).then((applicationData) => {
+//       if (applicationData[0]?.data.length > 0) {
+//         applicationList = applicationData[0].data
+//       }
+
+//       let options = {};
+//       let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
+//       let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
+//       let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : "";
+//       let sort = {};
+//       if (sortField == "applicantName") {
+//         sort = {
+//           applicantName: sortDirection
+//         }
+//       }
+//       if (sortField == "talukaName") {
+//         sort = {
+//           talukaName: sortDirection
+//         }
+//       }
+//       if (sortField == "villageName") {
+//         sort = {
+//           villageName: sortDirection
+//         }
+//       }
+//       if (sortField == "applicationFullDate") {
+//         sort = {
+//           applicationFullDate: sortDirection
+//         }
+//       }
+//       if (sortField == "MTRno") {
+//         sort = {
+//           MTRno: sortDirection
+//         }
+//       }
+//       if (sortField == "applicantMobileNo") {
+//         sort = {
+//           applicantMobileNo: sortDirection
+//         }
+//       }
+//       if (sortField == "newServeNo") {
+//         sort = {
+//           newServeNo: sortDirection
+//         }
+//       }
+//       if (sortField == "oldServeNo") {
+//         sort = {
+//           oldServeNo: sortDirection
+//         }
+//       } else {
+//         sort = {
+//           applicantName: -1
+//         }
+//       }
+
+//       let pageNumber = !!req.body.pageNumber ? (parseInt(req.body.pageNumber) - 1) : 0;
+//       let limit = !!req.body.pageSize ? parseInt(req.body.pageSize) : 50;
+//       let skip = limit * parseInt(pageNumber);
+//       options.skip = skip;
+//       options.limit = limit;
+
+//       let condition = {};
+//       condition["$and"] = [];
+//       condition["$and"].push({
+//         isSubmitted: false,
+//       });
+//       condition["$and"].push({
+//         isCompleted: 3,
+//       });
+//       condition["$and"].push({
+//         applicationId: { $in: applicationList },
+//       });
+
+//       if (!!req.body.sarveId && req.body.sarveId != "null") {
+//         condition["$and"].push({
+//           sarveId: ObjectID(req.body.sarveId),
+//         });
+//       }
+
+//       if (!!req.body.searchKey && req.body.searchKey != "") {
+//         condition["$and"].push({
+//           $or: [
+//             {
+//               applicantName: new RegExp(
+//                 ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+//                 "i"
+//               ),
+//             },
+
+//             {
+//               MTRno: new RegExp(
+//                 ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+//                 "i"
+//               ),
+//             },
+//             {
+//               applicantMobileNo: new RegExp(
+//                 ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+//                 "i"
+//               ),
+//             },
+//             {
+//               newServeNo: new RegExp(
+//                 ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+//                 "i"
+//               ),
+//             },
+//             {
+//               oldServeNo: new RegExp(
+//                 ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+//                 "i"
+//               ),
+//             },
+//           ],
+//         });
+//       }
+//       // console.log("condition", condition);
+//       let query = [
+//         {
+//           $match: condition,
+//         },
+//         {
+//           $lookup: {
+//             from: "applicationMaster",
+//             as: "applicationMasterData",
+//             let: { applicationId: "$applicationId" },
+//             pipeline: [
+//               {
+//                 $match: {
+//                   $expr: {
+//                     $eq: ["$_id", "$$applicationId"],
+//                   },
+//                 },
+//               },
+//               {
+//                 $lookup: {
+//                   from: "talukaList",
+//                   as: "talukaListData",
+//                   let: { taluka: "$taluka" },
+//                   pipeline: [
+//                     {
+//                       $match: {
+//                         $expr: {
+//                           $eq: ["$talukaId", "$$taluka"],
+//                         },
+//                       },
+//                     },
+
+//                     {
+//                       $project: {
+//                         _id: 1,
+//                         talukaName: 1,
+//                       },
+//                     },
+//                   ],
+//                 },
+//               },
+//               {
+//                 $unwind: {
+//                   path: "$talukaListData",
+//                   preserveNullAndEmptyArrays: true,
+//                 },
+//               },
+//               {
+//                 $lookup: {
+//                   from: "villageList",
+//                   as: "villageListData",
+//                   let: { village: "$village" },
+//                   pipeline: [
+//                     {
+//                       $match: {
+//                         $expr: {
+//                           $eq: ["$villageId", "$$village"],
+//                         },
+//                       },
+//                     },
+
+//                     {
+//                       $project: {
+//                         _id: 1,
+//                         villageName: 1,
+//                       },
+//                     },
+//                   ],
+//                 },
+//               },
+//               {
+//                 $unwind: {
+//                   path: "$villageListData",
+//                   preserveNullAndEmptyArrays: true,
+//                 },
+//               },
+//               {
+//                 $project: {
+//                   _id: 1,
+//                   applicantName: 1,
+//                   applicantMobileNo: 1,
+//                   applicantAddress: 1,
+//                   district: 1,
+//                   taluka: 1,
+//                   village: 1,
+//                   applicationFullDate: 1,
+//                   applicationYear: 1,
+//                   applicationMonth: 1,
+//                   applicationDate: 1,
+//                   newServeNo: 1,
+//                   oldServeNo: 1,
+//                   MTRno: {
+//                     $convert: {
+//                       input: "$MTRno",
+//                       to: "int",
+//                       onError: '*'
+//                     }
+//                   },
+//                   talukaName: "$talukaListData.talukaName",
+//                   villageName: "$villageListData.villageName",
+//                   isAssign: 1,
+//                   sarveId: 1,
+//                   sarveName: "$sarveMasterData.name",
+//                   status: 1,
+//                   createdAt: 1,
+//                   updatedAt: 1,
+//                 },
+//               },
+//             ],
+//           },
+//         },
+//         {
+//           $unwind: {
+//             path: "$applicationMasterData",
+//             preserveNullAndEmptyArrays: true,
+//           },
+//         },
+//         {
+//           $lookup: {
+//             from: "sarveMaster",
+//             as: "sarveMasterData",
+//             let: { sarveId: "$sarveId" },
+//             pipeline: [
+//               {
+//                 $match: {
+//                   $expr: {
+//                     $eq: ["$_id", "$$sarveId"],
+//                   },
+//                 },
+//               },
+
+//               {
+//                 $project: {
+//                   _id: 1,
+//                   name: 1,
+//                 },
+//               },
+//             ],
+//           },
+//         },
+//         {
+//           $unwind: {
+//             path: "$sarveMasterData",
+//             preserveNullAndEmptyArrays: true,
+//           },
+//         },
+//         {
+//           $project: {
+//             _id: 1,
+//             applicationId: "$applicationMasterData._id",
+//             applicantName: "$applicationMasterData.applicantName",
+//             applicantMobileNo: "$applicationMasterData.applicantMobileNo",
+//             applicantAddress: "$applicationMasterData.applicantAddress",
+//             district: "$applicationMasterData.district",
+//             taluka: "$applicationMasterData.taluka",
+//             village: "$applicationMasterData.village",
+//             applicationFullDate: "$applicationMasterData.applicationFullDate",
+//             applicationYear: "$applicationMasterData.applicationYear",
+//             applicationMonth: "$applicationMasterData.applicationMonth",
+//             applicationDate: "$applicationMasterData.applicationDate",
+//             newServeNo: "$applicationMasterData.newServeNo",
+//             oldServeNo: "$applicationMasterData.oldServeNo",
+//             MTRno: "$applicationMasterData.MTRno",
+//             talukaName: "$applicationMasterData.talukaName",
+//             villageName: "$applicationMasterData.villageName",
+//             isAssign: "$applicationMasterData.isAssign",
+//             sarveId: 1,
+//             sarveName: "$sarveMasterData.name",
+//             status: 1,
+//             createdAt: 1,
+//             updatedAt: 1,
+//           },
+//         },
+//         { $sort: sort },
+//         { $skip: skip },
+//         { $limit: limit },
+//       ];
+
+//       let result = {};
+//       async.parallel(
+//         [
+//           function (cb) {
+//             // UserModel.advancedAggregate(countQuery, {}, (err, countData) => {
+//             AssignModel.count(condition, (err, countData) => {
+//               if (err) {
+//                 throw err;
+//               } else if (options.skip === 0 && countData === 0) {
+//                 result.totaldata = 0;
+//                 cb(null);
+//               } else if (options.skip > 0 && countData === 0) {
+//                 result.totaldata = 0;
+//                 cb(null);
+//               } else {
+//                 console.log("---------", countData)
+//                 if (countData <= skip + limit) {
+//                   result.totaldata = countData;
+//                 } else {
+//                   result.totaldata = countData;
+//                 }
+//                 cb(null);
+
+//               }
+//             });
+//           },
+//           function (cb) {
+//             AssignModel.aggregate(query, (err, applicationMaster) => {
+//               if (err) {
+//                 throw err;
+//               } else if (options.skip === 0 && _.isEmpty(applicationMaster)) {
+//                 cb(null);
+//               } else if (options.skip > 0 && _.isEmpty(applicationMaster)) {
+//                 cb(null);
+//               } else {
+//                 result.result = applicationMaster;
+//                 cb(null);
+//               }
+//             });
+
+//           }
+//         ],
+//         function (err) {
+//           if (err) {
+//             throw err;
+//           } else if (options.skip === 0 && _.isEmpty(result.result)) {
+//             response.setData(AppCode.NotFound, result);
+//             response.send(res);
+//           } else if (options.skip > 0 && _.isEmpty(result.result)) {
+//             response.setData(AppCode.NotFound, result);
+//             response.send(res);
+//           } else {
+//             response.setData(AppCode.Success, result);
+//             response.send(res);
+//           }
+//         }
+//       );
+
+
+
+
+
+
+
+
+
+//     });
+//   } catch (exception) {
+//     response.setError(AppCode.InternalServerError);
+//     response.send(res);
+//   }
+// };
+
 applicationMasterCtrl.applicationMasterListforAssign = (req, res) => {
   const response = new HttpRespose();
   try {
-    let taluka = "";
-    let village = "";
-    let applicationYear = "";
-    if (!!req.body.taluka && req.body.taluka != "null") {
-      taluka = req.body.taluka;
+
+    let options = {};
+    let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
+    let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
+    let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : -1;
+    let sort = {};
+    if (sortField == "applicantName") {
+      sort = {
+        applicantName: sortDirection
+      }
     }
+    if (sortField == "talukaName") {
+      sort = {
+        talukaName: sortDirection
+      }
+    }
+    if (sortField == "villageName") {
+      sort = {
+        villageName: sortDirection
+      }
+    }
+    if (sortField == "applicationFullDate") {
+      sort = {
+        applicationFullDate: sortDirection
+      }
+    }
+    if (sortField == "MTRno") {
+      sort = {
+        MTRno: sortDirection
+      }
+    }
+    if (sortField == "applicantMobileNo") {
+      sort = {
+        applicantMobileNo: sortDirection
+      }
+    }
+    if (sortField == "newServeNo") {
+      sort = {
+        newServeNo: sortDirection
+      }
+    }
+    if (sortField == "oldServeNo") {
+      sort = {
+        oldServeNo: sortDirection
+      }
+    }
+
+    let pageNumber = !!req.body.pageNumber ? (parseInt(req.body.pageNumber) - 1) : 0;
+    let limit = !!req.body.pageSize ? parseInt(req.body.pageSize) : 50;
+    let skip = limit * parseInt(pageNumber);
+    options.skip = skip;
+    options.limit = limit;
+
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      isSubmitted: false,
+    });
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
+    if (!!req.body.sarveId && req.body.sarveId != "null") {
+      condition["$and"].push({
+        sarveId: ObjectID(req.body.sarveId),
+      });
+    }
+
+    if (!!req.body.taluka && req.body.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.body.taluka),
+      });
+    }
+
     if (!!req.body.village && req.body.village != "null") {
-      village = req.body.village;
+      condition["$and"].push({
+        village: parseInt(req.body.village),
+      });
     }
     if (!!req.body.applicationYear && req.body.applicationYear != "null") {
-      applicationYear = req.body.applicationYear;
+      condition["$and"].push({
+        applicationYear: req.body.applicationYear,
+      });
     }
-    let applicationList = [];
-    getApplicationList(taluka,village, applicationYear).then((applicationData) => {
-      if (applicationData[0]?.data.length > 0) {
-        applicationList = applicationData[0].data
-      }
-
-      let options = {};
-      let searchKey = !!req.body.searchKey ? req.body.searchKey : "";
-      let sortField = !!req.body.sortField ? req.body.sortField.toString() : "";
-      let sortDirection = !!req.body.sortDirection ? parseInt(req.body.sortDirection) : "";
-      let sort = {};
-      if (sortField == "applicantName") {
-        sort = {
-          applicantName: sortDirection
-        }
-      }
-      if (sortField == "talukaName") {
-        sort = {
-          talukaName: sortDirection
-        }
-      }
-      if (sortField == "villageName") {
-        sort = {
-          villageName: sortDirection
-        }
-      }
-      if (sortField == "applicationFullDate") {
-        sort = {
-          applicationFullDate: sortDirection
-        }
-      }
-      if (sortField == "MTRno") {
-        sort = {
-          MTRno: sortDirection
-        }
-      }
-      if (sortField == "applicantMobileNo") {
-        sort = {
-          applicantMobileNo: sortDirection
-        }
-      }
-      if (sortField == "newServeNo") {
-        sort = {
-          newServeNo: sortDirection
-        }
-      }
-      if (sortField == "oldServeNo") {
-        sort = {
-          oldServeNo: sortDirection
-        }
-      } else {
-        sort = {
-          applicantName: -1
-        }
-      }
-
-      let pageNumber = !!req.body.pageNumber ? (parseInt(req.body.pageNumber) - 1) : 0;
-      let limit = !!req.body.pageSize ? parseInt(req.body.pageSize) : 50;
-      let skip = limit * parseInt(pageNumber);
-      options.skip = skip;
-      options.limit = limit;
-
-      let condition = {};
-      condition["$and"] = [];
+    if (!!req.body.searchKey && req.body.searchKey != "") {
       condition["$and"].push({
-        isSubmitted: false,
+        $or: [
+          {
+            applicantName: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            MTRno: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            applicantMobileNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            newServeNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+          {
+            oldServeNo: new RegExp(
+              ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
+              "i"
+            ),
+          },
+        ],
       });
-      condition["$and"].push({
-        isCompleted: 3,
-      });
-      condition["$and"].push({
-        applicationId: { $in: applicationList },
-      });
-
-      if (!!req.body.sarveId && req.body.sarveId != "null") {
-        condition["$and"].push({
-          sarveId: ObjectID(req.body.sarveId),
-        });
-      }
-
-      if (!!req.body.searchKey && req.body.searchKey != "") {
-        condition["$and"].push({
-          $or: [
+    }
+    console.log("condition", condition);
+    let query = [
+      {
+        $match: condition,
+      },
+      {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
             {
-              applicantName: new RegExp(
-                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
-                "i"
-              ),
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
             },
 
             {
-              MTRno: new RegExp(
-                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
-                "i"
-              ),
-            },
-            {
-              applicantMobileNo: new RegExp(
-                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
-                "i"
-              ),
-            },
-            {
-              newServeNo: new RegExp(
-                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
-                "i"
-              ),
-            },
-            {
-              oldServeNo: new RegExp(
-                ".*" + searchKey.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + ".*",
-                "i"
-              ),
+              $project: {
+                _id: 1,
+                talukaName: 1,
+              },
             },
           ],
-        });
-      }
-      // console.log("condition", condition);
-      let query = [
-        {
-          $match: condition,
         },
-        {
-          $lookup: {
-            from: "applicationMaster",
-            as: "applicationMasterData",
-            let: { applicationId: "$applicationId" },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$applicationId"],
-                  },
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: { village: "$village" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
                 },
               },
-              {
-                $lookup: {
-                  from: "talukaList",
-                  as: "talukaListData",
-                  let: { taluka: "$taluka" },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$talukaId", "$$taluka"],
-                        },
-                      },
-                    },
+            },
 
-                    {
-                      $project: {
-                        _id: 1,
-                        talukaName: 1,
-                      },
-                    },
-                  ],
-                },
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
               },
-              {
-                $unwind: {
-                  path: "$talukaListData",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $lookup: {
-                  from: "villageList",
-                  as: "villageListData",
-                  let: { village: "$village" },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$villageId", "$$village"],
-                        },
-                      },
-                    },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: "$applicationId",
+          applicantName: 1,
+          applicantMobileNo: 1,
+          applicantAddress: 1,
+          district: 1,
+          taluka: 1,
+          village: 1,
+          applicationFullDate: 1,
+          applicationYear: 1,
+          applicationMonth: 1,
+          applicationDate: 1,
+          newServeNo: 1,
+          oldServeNo: 1,
+          MTRno: {
+            $convert: {
+              input: "$MTRno",
+              to: "int",
+              onError: '*'
+            }
+          },
+          isAssign: 1,
+          talukaName: "$talukaListData.talukaName",
+          villageName: "$villageListData.villageName",
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: limit },
+    ];
 
-                    {
-                      $project: {
-                        _id: 1,
-                        villageName: 1,
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                $unwind: {
-                  path: "$villageListData",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $project: {
-                  _id: 1,
-                  applicantName: 1,
-                  applicantMobileNo: 1,
-                  applicantAddress: 1,
-                  district: 1,
-                  taluka: 1,
-                  village: 1,
-                  applicationFullDate: 1,
-                  applicationYear: 1,
-                  applicationMonth: 1,
-                  applicationDate: 1,
-                  newServeNo: 1,
-                  oldServeNo: 1,
-                  MTRno: 1,
-                  talukaName: "$talukaListData.talukaName",
-                  villageName: "$villageListData.villageName",
-                  isAssign: 1,
-                  sarveId: 1,
-                  sarveName: "$sarveMasterData.name",
-                  status: 1,
-                  createdAt: 1,
-                  updatedAt: 1,
-                },
-              },
-            ],
-          },
-        },
-        {
-          $unwind: {
-            path: "$applicationMasterData",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: "sarveMaster",
-            as: "sarveMasterData",
-            let: { sarveId: "$sarveId" },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$sarveId"],
-                  },
-                },
-              },
-
-              {
-                $project: {
-                  _id: 1,
-                  name: 1,
-                },
-              },
-            ],
-          },
-        },
-        {
-          $unwind: {
-            path: "$sarveMasterData",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            applicationId: "$applicationMasterData._id",
-            applicantName: "$applicationMasterData.applicantName",
-            applicantMobileNo: "$applicationMasterData.applicantMobileNo",
-            applicantAddress: "$applicationMasterData.applicantAddress",
-            district: "$applicationMasterData.district",
-            taluka: "$applicationMasterData.taluka",
-            village: "$applicationMasterData.village",
-            applicationFullDate: "$applicationMasterData.applicationFullDate",
-            applicationYear: "$applicationMasterData.applicationYear",
-            applicationMonth: "$applicationMasterData.applicationMonth",
-            applicationDate: "$applicationMasterData.applicationDate",
-            newServeNo: "$applicationMasterData.newServeNo",
-            oldServeNo: "$applicationMasterData.oldServeNo",
-            MTRno: "$applicationMasterData.MTRno",
-            talukaName: "$applicationMasterData.talukaName",
-            villageName: "$applicationMasterData.villageName",
-            isAssign: "$applicationMasterData.isAssign",
-            sarveId: 1,
-            sarveName: "$sarveMasterData.name",
-            status: 1,
-            createdAt: 1,
-            updatedAt: 1,
-          },
-        },
-        { $sort: sort },
-        { $skip: skip },
-        { $limit: limit },
-      ];
-
-      let result = {};
-      async.parallel(
-        [
-          function (cb) {
-            // UserModel.advancedAggregate(countQuery, {}, (err, countData) => {
-            AssignModel.count(condition, (err, countData) => {
-              if (err) {
-                throw err;
-              } else if (options.skip === 0 && countData === 0) {
-                result.totaldata = 0;
-                cb(null);
-              } else if (options.skip > 0 && countData === 0) {
-                result.totaldata = 0;
-                cb(null);
+    let result = {};
+    async.parallel(
+      [
+        function (cb) {
+          // UserModel.advancedAggregate(countQuery, {}, (err, countData) => {
+          AssignModel.count(condition, (err, countData) => {
+            if (err) {
+              throw err;
+            } else if (options.skip === 0 && countData === 0) {
+              result.totaldata = 0;
+              cb(null);
+            } else if (options.skip > 0 && countData === 0) {
+              result.totaldata = 0;
+              cb(null);
+            } else {
+              console.log("---------", countData)
+              if (countData <= skip + limit) {
+                result.totaldata = countData;
               } else {
-                console.log("---------", countData)
-                if (countData <= skip + limit) {
-                  result.totaldata = countData;
-                } else {
-                  result.totaldata = countData;
-                }
-                cb(null);
-
+                result.totaldata = countData;
               }
-            });
-          },
-          function (cb) {
-            AssignModel.aggregate(query, (err, applicationMaster) => {
-              if (err) {
-                throw err;
-              } else if (options.skip === 0 && _.isEmpty(applicationMaster)) {
-                cb(null);
-              } else if (options.skip > 0 && _.isEmpty(applicationMaster)) {
-                cb(null);
-              } else {
-                result.result = applicationMaster;
-                cb(null);
-              }
-            });
+              cb(null);
 
+            }
+          });
+        },
+        function (cb) {
+          AssignModel.aggregate(query, (err, applicationMaster) => {
+            console.log("applicationMaster", applicationMaster);
+            if (err) {
+              throw err;
+            } else if (options.skip === 0 && _.isEmpty(applicationMaster)) {
+              cb(null);
+            } else if (options.skip > 0 && _.isEmpty(applicationMaster)) {
+              cb(null);
+            } else {
+              result.result = applicationMaster;
+              cb(null);
+            }
           }
-        ],
-        function (err) {
-          if (err) {
-            throw err;
-          } else if (options.skip === 0 && _.isEmpty(result.result)) {
-            response.setData(AppCode.NotFound, result);
-            response.send(res);
-          } else if (options.skip > 0 && _.isEmpty(result.result)) {
-            response.setData(AppCode.NotFound, result);
-            response.send(res);
-          } else {
-            response.setData(AppCode.Success, result);
-            response.send(res);
-          }
+          );
         }
-      );
-
-
-
-
-
-
-
-
-
-    });
+      ],
+      function (err) {
+        if (err) {
+          throw err;
+        } else if (options.skip === 0 && _.isEmpty(result.result)) {
+          response.setData(AppCode.NotFound, result);
+          response.send(res);
+        } else if (options.skip > 0 && _.isEmpty(result.result)) {
+          response.setData(AppCode.NotFound, result);
+          response.send(res);
+        } else {
+          response.setData(AppCode.Success, result);
+          response.send(res);
+        }
+      })
   } catch (exception) {
     response.setError(AppCode.InternalServerError);
     response.send(res);
   }
 };
+
 
 /* Application Assign History List */
 applicationMasterCtrl.assignHistorybyApplicationId = (req, res) => {
@@ -1458,6 +1756,18 @@ applicationMasterCtrl.uniqueYearList = (req, res) => {
       });
     }
 
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+
+    if (!!req.query.village && req.query.village != "null") {
+      condition["$and"].push({
+        village: parseInt(req.query.village),
+      });
+    }
+
     let query = [
       {
         $match: condition,
@@ -1504,64 +1814,51 @@ applicationMasterCtrl.uniqueYearListForAssignPerson = (req, res) => {
   const response = new HttpRespose();
   try {
 
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      isSubmitted: false,
+    });
+    condition["$and"].push({
+      isCompleted: 3,
+    });
+
+    if (!!req.query.sarveId && req.query.sarveId != "null") {
+      condition["$and"].push({
+        sarveId: ObjectID(req.query.sarveId),
+      });
+    }
+
+    if (!!req.query.taluka && req.query.taluka != "null") {
+      condition["$and"].push({
+        taluka: parseInt(req.query.taluka),
+      });
+    }
+
+    if (!!req.query.village && req.query.village != "null") {
+      condition["$and"].push({
+        village: parseInt(req.query.village),
+      });
+    }
+
+
     let query = [
       {
-        $match: {
-          $and: [
-            {
-              sarveId: ObjectID(
-                req.query.sarveId
-              ),
-            },
-            {
-              isSubmitted: false,
-            },
-            {
-              isCompleted: 3,
-            },
-          ],
-        },
+        $match: condition
       },
-      {
-        $lookup: {
-          from: "applicationMaster",
-          as: "applicationData",
-          let: {
-            applicationId: "$applicationId",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$applicationId"],
-                },
-              },
-            },
-          ],
-        },
-      },
-      {
-        $unwind: {
-          path: "$applicationData",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          year: "$applicationData.applicationYear",
-        },
-      },
+
       {
         $group: {
           _id: {
-            year: "$year",
+            year: "$applicationYear",
           },
           year: {
-            $first: "$year",
+            $first: "$applicationYear",
           },
         },
       },
+      { $sort: { year: -1 } }
     ];
     AssignModel.advancedAggregate(
       query,
