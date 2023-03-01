@@ -2331,6 +2331,89 @@ applicationMasterCtrl.applicationMasterExport = (req, res) => {
           ],
         },
       },
+      {
+        $lookup: {
+          from: "talukaList",
+          as: "talukaListData",
+          let: { taluka: "$taluka" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$talukaId", "$$taluka"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                talukaName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$talukaListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "villageList",
+          as: "villageListData",
+          let: { village: "$village" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$villageId", "$$village"],
+                },
+              },
+            },
+
+            {
+              $project: {
+                _id: 1,
+                villageName: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$villageListData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          applicantName: 1,
+          applicantMobileNo: 1,
+          applicantAddress: 1,
+          district: 1,
+          taluka: 1,
+          village: 1,
+          applicationFullDate: 1,
+          applicationYear: 1,
+          applicationMonth: 1,
+          applicationDate: 1,
+          newServeNo: 1,
+          oldServeNo: 1,
+          MTRno: 1,
+          isAssign: 1,
+          talukaName: "$talukaListData.talukaName",
+          villageName: "$villageListData.villageName",
+          assignApplicationData: "$assignApplicationData",
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
     ];
     ApplicationMasterModel.advancedAggregate(
       query,
