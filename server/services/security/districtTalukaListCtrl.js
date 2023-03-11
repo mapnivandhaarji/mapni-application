@@ -557,11 +557,22 @@ districtTalukaListCtrl.uniqueVillageList = (req, res) => {
 districtTalukaListCtrl.talukaWiseVillageList = (req, res) => {
   const response = new HttpRespose();
   try {
+    let condition = {};
+    condition["$and"] = [];
+
+    condition["$and"].push({
+      districtId: 8,
+    });
+
+    if (!!req.query.talukaId && req.query.talukaId != "null") {
+      condition["$and"].push({
+        talukaId: parseInt(req.query.talukaId),
+      });
+    }
+    console.log(condition);
     let query = [
       {
-        $match: {
-          talukaId: parseInt(req.query.talukaId),
-        },
+        $match: condition
       },
     ];
     talukaVillageListModel.advancedAggregate(query, {}, (err, villageList) => {
