@@ -4,7 +4,7 @@
             "PROTOCOL": "http",
             "HOST": "mongodb://localhost:27017",
             "PORT": 3016,
-            "PUB_DIR": "/../frontend/dist/mapniArji"
+            "PUB_DIR": "/../client/dist"
         }
     },
     "LOGGER": {

@@ -90,9 +90,9 @@ module.exports = (app) => {
   app.use('/uploads', express.static(path.join(__dirname, '/../uploads')))
   app.use(
     "/images",
-    express.static(path.resolve("/../frontend/dist/mapniArji/assets/images/default"))
+    express.static(path.resolve("/../client/dist/assets/images/default"))
   );
-  app.use("/assets", express.static(path.resolve("/../frontend/dist/mapniArji/assets")));
+  app.use("/assets", express.static(path.resolve("/../client/dist/assets")));
   var cpUpload = upload.fields([
     {
       name: "photos",
@@ -168,7 +168,7 @@ module.exports = (app) => {
 
   // reload issuse solve of this line
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname + '/../frontend/dist/mapniArji/index.html'));
+    res.sendFile(path.join(__dirname + '/../client/dist/index.html'));
   });
 
 
