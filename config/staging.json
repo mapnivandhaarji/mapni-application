@@ -1,0 +1,28 @@
+{
+    "APP": {
+        "WEB": {
+            "PROTOCOL": "http",
+            "HOST": "mongodb://localhost:27017",
+            "PORT": 3016,
+            "PUB_DIR": "/../frontend/dist/mapniArji"
+        }
+    },
+    "LOGGER": {
+        "LEVEL": 0,
+        "DATA_PATH": "bg_info.log",
+        "INFO_PATH": "bg_info.log",
+        "ERROR_PATH": "bg_err.log",
+        "CRITICAL_PATH": "bg_err.log"
+    },
+    "DB": {
+        "MONGO": {
+            "DB_NAME": "MapniDetails",
+            "SERVER_URL": "mongodb+srv://mapnivandhaarji:MapniArji@1234@mapnivandhaarji20.rnx8km1.mongodb.net"
+        }
+    },
+    "MAIL": {
+        "SERVICEPROVIDER": " ",
+        "MAILID": " ",
+        "PASSWORD": " "
+    }
+}

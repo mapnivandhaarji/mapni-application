@@ -1,0 +1,188 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/dashboard">Dashboard /</span>
+            Application List
+        </div>
+
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                Total Application : {{applicationmasterListlength}}
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-primary" (click)="downloadApplicationExcel()">
+                    <i class="fa fa-download"></i>
+                </button>
+            </div>
+        </div>
+    </h4>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="row col-sm-12 col-md-12">
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Search :
+                            </span>
+                            <span class="w-70">
+                                <input type="text" class="form-control" placeholder="Search" #search
+                                    [(ngModel)]="searchTerm" (input)="search($event.target.value)">
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Taluka :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="talukaList" class="form-control  p-0" bindLabel="talukaName"
+                                    [(ngModel)]="talukaId" bindValue="talukaId" placeholder="Select Taluka"
+                                    (change)="onTalukaChange()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Village :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="villageList" class="form-control me-2 p-0 " bindLabel="villageName"
+                                    [(ngModel)]="villageId" bindValue="villageId" placeholder="Select Village"
+                                    (change)="onVillageChange()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Year :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="yearList" [(ngModel)]="applicationYear" class="form-control p-0"
+                                    bindLabel="applicationYear" bindValue="applicationYear"
+                                    (change)="getApplicationMaster()" placeholder="Select Year" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        &nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-datatable">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="table-responsive mt-1">
+                    <table class="table dataTable" matSort matSortDisableClear="true"
+                        (matSortChange)="sortData($event)">
+                        <thead>
+                            <tr>
+                                <!-- <th class="w-5">No</th> -->
+                                <th class="w-5" mat-sort-header="MTRno">MTR No.</th>
+                                <th class="w-5" mat-sort-header="applicationFullDate">Application Date</th>
+                                <th class="w-5" mat-sort-header="applicantName">Applicant Name</th>
+                                <th class="w-5">Applicant Mobile No.</th>
+                                <th class="w-5" mat-sort-header="newServeNo">New Sarve No.</th>
+                                <th class="w-5" mat-sort-header="oldServeNo">Old Sarve No.</th>
+                                <th class="w-5">District</th>
+                                <th class="w-5">Taluka</th>
+                                <th class="w-5">Village</th>
+                                <th class="w-10">Assignable</th>
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                            <tr
+                                *ngFor="let applicationmasterData of applicationmasterList | paginate: config; let applicationMasterIndex = index">
+
+
+                                <!-- <td>{{ l * (p - 1) + applicationMasterIndex + 1 }}</td> -->
+                                <td>{{ applicationmasterData.MTRno }}</td>
+                                <td>{{ applicationmasterData.applicationFullDate | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ applicationmasterData.applicantName }}</td>
+                                <td>{{ applicationmasterData.applicantMobileNo }}</td>
+                                <td>{{ applicationmasterData.newServeNo }}</td>
+                                <td>{{ applicationmasterData.oldServeNo }}</td>
+                                <td>{{ applicationmasterData.district == 8 ? 'સુરેન્દ્રનગર' : ''}}</td>
+                                <td>{{ applicationmasterData.talukaName }}</td>
+                                <td>{{ applicationmasterData.villageName }}</td>
+                                <td>
+                                    <span *ngIf="applicationmasterData.isAssign == true"
+                                        class="badge bg-label-success me-1">Assign</span>
+                                    <span *ngIf="applicationmasterData.isAssign == false"
+                                        class="badge bg-label-danger me-1">Not Assign</span>
+                                </td>
+                            </tr>
+                            <tr *ngIf="noData">
+                                <td colspan="12">
+                                    <h4 class="text-center mt-3">No Data Found</h4>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row px-4" *ngIf="!noData && applicationmasterListlength > l">
+            <div class="col-sm-12 col-md-6">
+                <div class="d-flex align-items-center justify-content-between ">
+                    <div class="dataTables_info me-4">Showing {{l * (p - 1) + 1}} to {{l * (p - 1) + l <
+                            applicationmasterListlength ? l * (p - 1) + l : applicationmasterListlength}} of
+                            {{applicationmasterListlength}} entries</div>
+
+                            <div class="dataTables_length d-flex align align-items-center dataTables_filter-1"
+                                id="DataTables_Table_0_length">
+                                <label class="me-2">Show</label>
+                                <ng-select name="DataTables_Table_0_length" [items]="itemList" [multiple]="false"
+                                    class="form-select custom-class form-control p-0 me-2" [searchable]="false"
+                                    bindLabel="name" bindValue="value" [(ngModel)]="itemsPerPage"
+                                    (change)="itemsPerPageChange($event.value)" [clearable]="false"
+                                    placeholder="Select Account Type">
+                                </ng-select>
+                                <label>entries</label>
+                            </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="dataTables_paginate paging_simple_numbers float-end">
+                        <pagination-template #pagination="paginationApi" (pageChange)="p = $event; setPage($event)">
+                            <ul class="pagination">
+                                <li class="page-item prev" [class.disabled]="pagination.isFirstPage()">
+                                    <a *ngIf="!pagination.isFirstPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.previous()">
+                                        <i class="tf-icon bx bx-chevron-left"></i> </a>
+                                    <div *ngIf="pagination.isFirstPage()" class="page-link">
+                                        <i class="tf-icon bx bx-chevron-left"></i>
+                                    </div>
+                                </li>
+
+                                <li *ngFor="let page of pagination.pages" class="page-item"
+                                    [class.active]="pagination.getCurrent() === page.value">
+                                    <a (click)="pagination.setCurrent(page.value)" class="page-link cursor-pointer"
+                                        *ngIf="pagination.getCurrent() !== page.value">
+                                        <span>{{ page.label }}</span>
+                                    </a>
+                                    <div class="page-link" *ngIf="pagination.getCurrent() === page.value">
+                                        <span>{{ page.label }}</span>
+                                    </div>
+                                </li>
+                                <li class="page-item next" [class.disabled]="pagination.isLastPage()">
+                                    <a *ngIf="!pagination.isLastPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.next()"><i class="tf-icon bx bx-chevron-right"></i> </a>
+                                    <div *ngIf="pagination.isLastPage()" class="page-link"><i
+                                            class="tf-icon bx bx-chevron-right"></i> </div>
+                                </li>
+                            </ul>
+                        </pagination-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

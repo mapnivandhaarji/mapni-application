@@ -1,0 +1,402 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/dashboard">Dashboard /</span>
+            Application List
+        </div>
+        <div>
+            <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                <div class="dt-buttons">
+                    <button class="dt-button create-new btn btn-primary me-3" type="button"
+                        (click)="openExcelUploadModal()"><span><span class="d-none d-sm-inline-block">Excel
+                                Upload</span></span></button>
+                    <button class="dt-button create-new btn btn-primary" type="button"
+                        routerLink="/admin/application-list/application-create"><span><span
+                                class="d-none d-sm-inline-block">Add
+                                New</span></span></button>
+                </div>
+            </div>
+        </div>
+    </h4>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="row col-sm-12 col-md-12 mb-3">
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Search :
+                            </span>
+                            <span class="w-70">
+                                <input type="text" #search [(ngModel)]="searchTerm" class="form-control"
+                                    placeholder="Search" (input)="search($event.target.value)">
+                            </span>
+                        </div>
+                    </div>
+                    <!-- <div class="col-lg-4">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Taluka :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="talukaList" class="form-control me-2 p-0 " bindLabel="talukaName"
+                                    [(ngModel)]="talukaId" bindValue="talukaId" placeholder="Select Taluka"
+                                    (change)="getApplicationMaster()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div> -->
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Year :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="yearList" [(ngModel)]="applicationYear"
+                                    class="form-control me-2 p-0 " bindLabel="applicationYear"
+                                    bindValue="applicationYear" (change)="getApplicationMaster()"
+                                    placeholder="Select Year" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <button type="button" class="btn float-end btn-primary ml-10"
+                            (click)="assignApplicationModalOpen()">Assign</button>
+                    </div>
+                </div>
+                <div class="row col-sm-12 col-md-12">
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Taluka :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="talukaList" class="form-control me-2 p-0 " bindLabel="talukaName"
+                                    [(ngModel)]="talukaId" bindValue="talukaId" placeholder="Select Taluka"
+                                    (change)="onTalukaChange()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Village :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="villageList" class="form-control me-2 p-0 " bindLabel="villageName"
+                                    [(ngModel)]="villageId" bindValue="villageId" placeholder="Select Village"
+                                    (change)="onVillageChange()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="col-sm-12 col-md-12 d-flex justify-content-between">
+                    <div class="col-lg-3">
+                        <div id="DataTables_Table_0_filter" class="dataTables_filter my-0">
+                            <label>Search:
+
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div id="DataTables_Table_0_filter" class="dataTables_filter my-0 ml-20">
+                            <label class="d-flex align-items-center">Taluka:
+
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div id="DataTables_Table_0_filter" class="dataTables_filter my-0 ml-20">
+                            <label class="d-flex align-items-center">Year:
+
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <button type="button" class="btn float-end btn-primary ml-10"
+                            (click)="assignApplicationModalOpen()">Assign</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <div class="card">
+        <div class="card-datatable">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="table-responsive mt-1">
+                    <table class="table dataTable" matSort matSortDisableClear="true"
+                        (matSortChange)="sortData($event)">
+                        <thead>
+                            <tr>
+                                <th class="w-5">
+                                    <input type="checkbox" class="form-check-input me-1"
+                                        [(ngModel)]="applicationIDSelected" (change)="onClickSelectAllApplicationID()">
+                                </th>
+                                <th class="w-10">Action</th>
+                                <!-- <th class="w-5">No</th> -->
+                                <th class="w-5">MTR No.</th>
+                                <th class="w-5" mat-sort-header="applicationFullDate">Application Date</th>
+                                <th class="w-5" mat-sort-header="applicantName">Applicant Name</th>
+                                <th class="w-5" mat-sort-header="applicantMobileNo">Applicant Mobile No.</th>
+                                <th class="w-5" mat-sort-header="newServeNo">New Sarve No.</th>
+                                <th class="w-5" mat-sort-header="oldServeNo">Old Sarve No.</th>
+                                <th class="w-5">District</th>
+                                <th class="w-5">Taluka</th>
+                                <th class="w-5">Village</th>
+                                <!-- <th class="w-10">Status</th> -->
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                            <tr
+                                *ngFor="let applicationmasterData of applicationmasterList  | paginate: config ; let applicationMasterIndex = index">
+                                <td>
+                                    <input type="checkbox" class="form-check-input me-1"
+                                        [(ngModel)]="applicationmasterData.isSelected"
+                                        (change)="onClickChange($event,applicationMasterIndex,applicationmasterData)">
+                                </td>
+                                <td>
+                                    <div class="d-flex">
+                                        <button class="btn btn-bg bg-label-primary p-1 me-2 "
+                                            (click)="editApplicationmaster(applicationmasterData._id)"><i
+                                                class="bx bx-edit-alt " tooltip="Edit" placement="bottom"
+                                                showDelay="100"></i>
+                                        </button>
+                                        <button (click)="rejectApplication(applicationmasterData._id)"
+                                            class="btn btn-bg bg-label-danger p-1" tooltip="Delete" placement="bottom"
+                                            showDelay="100"><i class="bx bx-trash"></i></button>
+                                        <!-- <button *ngIf="applicationmasterData.status == 2"
+                                            (click)="statusApplicationmaster({id :applicationmasterData._id,index:applicationMasterIndex, status:1})"
+                                            class="btn btn-bg bg-label-success p-1" tooltip="Active" placement="bottom"
+                                            showDelay="100"><i class="bx bx-plus"></i></button>
+                                        <button *ngIf="applicationmasterData.status == 1"
+                                            (click)="statusApplicationmaster({id :applicationmasterData._id,index:applicationMasterIndex, status:2})"
+                                            class="btn btn-bg bg-label-danger p-1" tooltip="Deactive" placement="bottom"
+                                            showDelay="100"><i class="bx bx-trash"></i></button> -->
+                                    </div>
+                                </td>
+                                <!-- <td>{{ l * (p - 1) + applicationMasterIndex + 1 }}</td> -->
+                                <td>{{ applicationmasterData.MTRno }}</td>
+                                <td>{{ applicationmasterData.applicationFullDate | date : 'dd/MM/yyyy' }}</td>
+                                <td>{{ applicationmasterData.applicantName }}</td>
+                                <td>{{ applicationmasterData.applicantMobileNo }}</td>
+                                <td>{{ applicationmasterData.newServeNo }}</td>
+                                <td>{{ applicationmasterData.oldServeNo }}</td>
+                                <td>{{ applicationmasterData.district == 8 ? 'સુરેન્દ્રનગર' : ''}}</td>
+                                <td>{{ applicationmasterData.talukaName }}</td>
+                                <td>{{ applicationmasterData.villageName }}</td>
+                                <!-- <td>
+                                    <span *ngIf="applicationmasterData.status == 1"
+                                        class="badge bg-label-success me-1">Active</span>
+                                    <span *ngIf="applicationmasterData.status == 2"
+                                        class="badge bg-label-danger me-1">Deactive</span>
+                                </td> -->
+                            </tr>
+                            <tr *ngIf="noData">
+                                <td colspan="11">
+                                    <h4 class="text-center mt-3">No Data Found</h4>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row px-4" *ngIf="!noData && applicationmasterListlength > l">
+            <div class="col-sm-12 col-md-6">
+                <div class="d-flex align-items-center justify-content-between ">
+                    <div class="dataTables_info me-4">Showing {{l * (p - 1) + 1}} to {{l * (p - 1) + l <
+                            applicationmasterListlength ? l * (p - 1) + l : applicationmasterListlength}} of
+                            {{applicationmasterListlength}} entries</div>
+
+                            <div class="dataTables_length d-flex align align-items-center dataTables_filter-1"
+                                id="DataTables_Table_0_length">
+                                <label class="me-2">Show</label>
+                                <ng-select name="DataTables_Table_0_length" [items]="itemList" [multiple]="false"
+                                    class="form-select custom-class form-control p-0 me-2" [searchable]="false"
+                                    bindLabel="name" bindValue="value" [(ngModel)]="itemsPerPage"
+                                    (change)="itemsPerPageChange($event.value)" [clearable]="false"
+                                    placeholder="Select Account Type">
+                                </ng-select>
+                                <label>entries</label>
+                            </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="dataTables_paginate paging_simple_numbers float-end">
+                        <pagination-template #pagination="paginationApi" (pageChange)="p = $event; setPage($event)">
+                            <ul class="pagination">
+                                <li class="page-item prev" [class.disabled]="pagination.isFirstPage()">
+                                    <a *ngIf="!pagination.isFirstPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.previous()">
+                                        <i class="tf-icon bx bx-chevron-left"></i> </a>
+                                    <div *ngIf="pagination.isFirstPage()" class="page-link">
+                                        <i class="tf-icon bx bx-chevron-left"></i>
+                                    </div>
+                                </li>
+
+                                <li *ngFor="let page of pagination.pages" class="page-item"
+                                    [class.active]="pagination.getCurrent() === page.value">
+                                    <a (click)="pagination.setCurrent(page.value)" class="page-link cursor-pointer"
+                                        *ngIf="pagination.getCurrent() !== page.value">
+                                        <span>{{ page.label }}</span>
+                                    </a>
+                                    <div class="page-link" *ngIf="pagination.getCurrent() === page.value">
+                                        <span>{{ page.label }}</span>
+                                    </div>
+                                </li>
+                                <li class="page-item next" [class.disabled]="pagination.isLastPage()">
+                                    <a *ngIf="!pagination.isLastPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.next()"><i class="tf-icon bx bx-chevron-right"></i> </a>
+                                    <div *ngIf="pagination.isLastPage()" class="page-link"><i
+                                            class="tf-icon bx bx-chevron-right"></i> </div>
+                                </li>
+                            </ul>
+                        </pagination-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="assign-application-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel1"><strong>Assign Application</strong></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        (click)="closeAssignModal()"></button>
+                </div>
+                <div class="modal-body" [formGroup]="assignApplicationForm">
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="nameBasic" class="form-label required">Savreyer Name</label>
+                            <ng-select [items]="sarveyerActiveList" class="form-control p-0" bindLabel="name"
+                                bindValue="_id" placeholder="Select Sarveyer Name" [clearable]="false"
+                                formControlName="sarveId">
+                            </ng-select>
+                            <div *ngIf="submittedApplicationAssignData && fApplicationAssignData.sarveId.errors">
+                                <div *ngIf="fApplicationAssignData.sarveId.errors.required">
+                                    <span class="error_msg">Sarveyer Name is Required for Assign Application.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col mb-3">
+                            <label for="nameBasic" class="form-label required">Application Assign Date</label>
+                            <div class="mb-3 position-relative mat-date-picker" (click)="assignDate.open()">
+                                <input matInput class="form-control" placeholder="Please Select Date"
+                                    [matDatepicker]="assignDate" formControlName="assignDate">
+                                <div class="mat-dat-picker-icon">
+                                    <div class="calendar-icon"><i class="bx bxs-calendar"></i></div>
+                                    <mat-datepicker-toggle matSuffix [for]="assignDate">
+                                    </mat-datepicker-toggle>
+                                    <mat-datepicker #assignDate></mat-datepicker>
+                                </div>
+                                <div *ngIf="submittedApplicationAssignData && fApplicationAssignData.assignDate.errors">
+                                    <div *ngIf="fApplicationAssignData.assignDate.errors.required">
+                                        <span class="error_msg">Assign Application Date is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" (click)="assignApplicationData()">Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="excel-upload-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel1"><strong>Upload Excel</strong></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        (click)="closeAssignModal()"></button>
+                </div>
+                <div class="modal-body" [formGroup]="excelUploadForm">
+                    <div class="row mb-3">
+                        <div class="col-lg-4">
+                            <span class="required">Taluka</span>
+                        </div>
+                        <div class="col-lg-8">
+                            <ng-select [items]="talukaBindList" class="form-control me-2 p-0 " bindLabel="talukaName"
+                                formControlName="taluka" bindValue="talukaId" placeholder="Select Taluka"
+                                (change)="getVillageListBindByTalukaBindedList()" [clearable]="true">
+                            </ng-select>
+                            <div *ngIf="submittedExcelUploadData && fExcelUploadData.taluka.errors">
+                                <div *ngIf="fExcelUploadData.taluka.errors.required">
+                                    <span class="error_msg">Taluka is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-lg-4">
+                            <span class="required">Excel File</span>
+                        </div>
+                        <div class="col-lg-8">
+                            <input type="file" #onDocumentAttachments id="onDocumentAttachments" class="form-control"
+                                (change)="onDocumentChange($event)" accept=".xls, .xlsx,application/msexcel">
+                            <div class="row" *ngIf="uploadedDocumentsName">
+                                <div class="col-lg-6 mt-4 mb-2">
+                                    <div class="document-file-main" [title]="uploadedDocuments.name">
+                                        <div class="p-1 position-relative">
+                                            <button
+                                                class="border-0 float-right btn-show-close btn-delete-icon btn m-0 btn-primary"
+                                                (click)="removeDocument()">
+                                                <i class="fa fa-times font-14"></i>
+                                            </button>
+                                            <div class="document-file-image" style="height: 80px;">
+                                                <img src="assets/img/file.png" width="50%" />
+                                            </div>
+                                            <h5 class="px-10px color-black mb-0 filename">
+                                                {{uploadedDocuments.name}}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div *ngIf="submittedExcelUploadData == true">
+                                <span class="error_msg">Please Select File</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-lg-4">
+                            <label class="color-808080 m-0">
+                                Demo file
+                            </label>
+                            <a title=" Mapni Arji Excel Upload File" href="assets/excel/Demo File.xlsx"
+                                class="demo-file mt-2">
+                                <span class="excel-doc">
+                                    <img src="assets/img/file.png" width="100%" height="auto">
+                                </span>
+                                <span class="demo-file-text">
+                                    Mapni Arji Excel Demo File
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" (click)="uploadExcelFile()">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,52 @@
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+    <div class="app-brand demo">
+        <a routerLink="dashboard" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                <h3 class="text-primary">
+                    <strong>માપણી વાંધા અરજી</strong>
+                </h3>
+                <!-- <img class="utsav-logo" src="../../../assets/img/logo.png" alt="" width="200" height=""> -->
+                <!-- <img class="utsav-logo" src="{{uploadsUrl}}{{this.storageService.getValue('utsav_decor_logo')}}" alt=""> -->
+            </span>
+            <!-- <span class="app-brand-text demo menu-text fw-bolder ms-2 text-capitalize">Angular Demo</span> -->
+        </a>
+
+
+        <a href="javascript:void(0);" (click)="sidebarClose()"
+            class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+        </a>
+    </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1 sidebar-wrapper">
+        <li class="menu-item" routerLinkActive="active open" *ngFor="let menuData of menuItems">
+            <a routerLink="{{menuData.path}}" class="menu-link" (click)="reInializeChildMenu()">
+                <!-- <img class="icon-png default-icon" src="{{iconDefaultURL}}{{menuData.default_icon}}" alt="default-icon"
+                    width="25">
+                <img class="icon-png active-icon" src="{{iconActiveURL}}{{menuData.active_icon}}" alt="active-icon"
+                    width="25"> -->
+                <div data-i18n="Analytics">{{menuData.title}}</div>
+            </a>
+
+
+            <!-- <a href="javascript:void(0);" (click)="childrenMenu(menuIndex)" class="menu-link menu-toggle"
+                >
+                <img class="icon-png default-icon" src="{{iconDefaultURL}}{{menuData.default_icon}}" alt="default-icon"
+                    width="25">
+                <img class="icon-png active-icon" src="{{iconActiveURL}}{{menuData.active_icon}}" alt="active-icon"
+                    width="25">
+                <div data-i18n="Analytics">{{menuData.title}}</div>
+            </a>
+            <ul class="menu-sub ml-20" *ngIf="menuData.children.length > 0">
+                <li class="menu-item" routerLinkActive="active" *ngFor="let childrenData of menuData.children">
+                    <a routerLink="{{childrenData.path}}" class="menu-link">
+                        <div data-i18n="Blank">{{childrenData.title}}</div>
+                    </a>
+                </li>
+            </ul> -->
+        </li>
+    </ul>
+
+</aside>

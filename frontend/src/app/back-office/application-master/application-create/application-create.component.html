@@ -1,0 +1,161 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/dashboard">Dashboard / </span>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/{{url}}">{{url ==
+                'assign-application-list' ? 'Assign Application' : 'Application'}} /</span>
+            {{ISeditApplicationMaster == false ? 'Create' : fApplicationMasterData.applicantName.value | titlecase}}
+        </div>
+        <div>
+            <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                <div class="dt-buttons">
+                    <button class="dt-button create-new btn btn-outline-primary" type="button"
+                        (click)="cancleApplication()"><span><span class="d-none d-sm-inline-block">Back to
+                                List</span></span></button>
+                </div>
+            </div>
+        </div>
+    </h4>
+    <div class="card">
+        <div class="card-datatable">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="card-body">
+                    <form role="form" class="add-employee-form" [formGroup]="applicationmasterForm" autocomplete="off">
+                        <div class="row">
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">MTR No.</label>
+                                <input type="text" id="application Address" class="form-control"
+                                    placeholder="Enter MTR NO." formControlName="MTRno" />
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.MTRno.errors">
+                                    <div *ngIf="fApplicationMasterData.MTRno.errors.required">
+                                        <span class="error_msg">MTR NO. is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label">Applicant Name</label>
+                                <input type="text" id="application Name" class="form-control"
+                                    placeholder="Enter Applicant Name" formControlName="applicantName" />
+                                <div
+                                    *ngIf="submittedApplicationMasterData && fApplicationMasterData.applicantName.errors">
+                                    <div *ngIf="fApplicationMasterData.applicantName.errors.required">
+                                        <span class="error_msg">Applicant Name is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label">Applicant Mobile No.</label>
+                                <input type="text" id="application Name" class="form-control"
+                                    placeholder="Enter Applicant Mobile No." maxlength="10"
+                                    formControlName="applicantMobileNo" />
+                                <div
+                                    *ngIf="submittedApplicationMasterData && fApplicationMasterData.applicantMobileNo.errors">
+                                    <div *ngIf="fApplicationMasterData.applicantMobileNo.errors.required">
+                                        <span class="error_msg">Applicant Mobile No. is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label">Applicant Address</label>
+                                <textarea name="" placeholder="Enter Applicant Address"
+                                    formControlName="applicantAddress" id="" rows="3" class="form-control"></textarea>
+                                <div
+                                    *ngIf="submittedApplicationMasterData && fApplicationMasterData.applicantAddress.errors">
+                                    <div *ngIf="fApplicationMasterData.applicantAddress.errors.required">
+                                        <span class="error_msg">Applicant Address is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">District</label>
+                                <ng-select [items]="districtList" class="form-control p-0" bindLabel="name"
+                                    bindValue="value" placeholder="Select District" [clearable]="false"
+                                    formControlName="district">
+                                </ng-select>
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.district.errors">
+                                    <div *ngIf="fApplicationMasterData.district.errors.required">
+                                        <span class="error_msg">District is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">Taluka</label>
+                                <ng-select [items]="talukaList" class="form-control p-0" bindLabel="talukaName"
+                                    bindValue="talukaId" placeholder="Select Taluka" [clearable]="false"
+                                    formControlName="taluka" (change)="getVillageListByTalukaId()">
+                                </ng-select>
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.taluka.errors">
+                                    <div *ngIf="fApplicationMasterData.taluka.errors.required">
+                                        <span class="error_msg">Taluka is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">Village</label>
+                                <ng-select [items]="villageList" class="form-control p-0" bindLabel="villageShowName"
+                                    bindValue="villageId" placeholder="Select Village" [clearable]="false"
+                                    formControlName="village">
+                                </ng-select>
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.village.errors">
+                                    <div *ngIf="fApplicationMasterData.village.errors.required">
+                                        <span class="error_msg">Village is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">Application Date</label>
+                                <div class="mb-3 position-relative mat-date-picker"
+                                    (click)="applicationFullDate.open()">
+                                    <input matInput class="form-control" placeholder="Please Select Date"
+                                        [matDatepicker]="applicationFullDate" formControlName="applicationFullDate">
+                                    <div class="mat-dat-picker-icon">
+                                        <div class="calendar-icon"><i class="bx bxs-calendar"></i></div>
+                                        <mat-datepicker-toggle matSuffix [for]="applicationFullDate">
+                                        </mat-datepicker-toggle>
+                                        <mat-datepicker #applicationFullDate></mat-datepicker>
+                                    </div>
+                                    <div
+                                        *ngIf="submittedApplicationMasterData && fApplicationMasterData.applicationFullDate.errors">
+                                        <div *ngIf="fApplicationMasterData.applicationFullDate.errors.required">
+                                            <span class="error_msg">Application Date is Required.</span>`
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label">Old Sarve No.</label>
+                                <input type="text" id="application Address" class="form-control"
+                                    placeholder="Enter Old Sarve No." formControlName="oldServeNo" />
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.oldServeNo.errors">
+                                    <div *ngIf="fApplicationMasterData.oldServeNo.errors.required">
+                                        <span class="error_msg">Old Sarve No. is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 mb-3">
+                                <label for="nameBasic" class="form-label required">New Sarve No.</label>
+                                <input type="text" id="application Address" class="form-control"
+                                    placeholder="Enter New Sarve No." formControlName="newServeNo" />
+                                <div *ngIf="submittedApplicationMasterData && fApplicationMasterData.newServeNo.errors">
+                                    <div *ngIf="fApplicationMasterData.newServeNo.errors.required">
+                                        <span class="error_msg">New Sarve No. is Required.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="button" class="btn btn-outline-primary" (click)="cancleApplication()">Cancle</button>
+                    <button type="button" class="btn btn-primary ml-10" *ngIf="ISeditApplicationMaster === false"
+                        (click)="saveApplicationmaster()">Save</button>
+                    <button type="button" class="btn btn-primary ml-10" *ngIf="ISeditApplicationMaster === true"
+                        (click)="updateApplicationmaster()">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

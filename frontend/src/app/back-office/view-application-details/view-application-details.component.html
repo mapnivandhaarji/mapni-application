@@ -1,0 +1,133 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            Application Details
+        </div>
+        <div>
+            <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                <div class="dt-buttons">
+                    <button class="dt-button create-new btn btn-outline-primary" type="button"
+                        routerLink="/admin/assign-application-list"><span><span class="d-none d-sm-inline-block">Back to
+                                List</span></span></button>
+                </div>
+            </div>
+        </div>
+    </h4>
+
+    <!-- application details start -->
+
+    <div class="card mb-3">
+        <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+            <div class="card-body">
+                <div class="row">
+                    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            MTR No. : {{assignApplicationList?.MTRno}}
+                        </div>
+                    </h4>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <ul class="list-unstyled">
+                            <!-- <li class="mb-2">
+                                    <span class="fw-bold me-2">MTR No. :</span>
+                                    <span></span>
+                                </li> -->
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Applicant Name :</span>
+                                <span>{{assignApplicationList?.applicantName}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Applicant Mobile No. :</span>
+                                <span>{{assignApplicationList?.applicantMobileNo}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">District :</span>
+                                <span>{{assignApplicationList?.district == 8 ? 'સુરેન્દ્રનગર' : ''}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Taluka :</span>
+                                <span>{{assignApplicationList?.talukaName}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Application Date :</span>
+                                <span>{{assignApplicationList?.applicationFullDate | date :
+                                    'dd/MM/yyyy'}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">New Sarve No. :</span>
+                                <span>{{assignApplicationList?.newServeNo}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Old Sarve No. :</span>
+                                <span>{{assignApplicationList?.oldServeNo}}</span>
+                            </li>
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Village :</span>
+                                <span>{{assignApplicationList?.villageName}}</span>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- application details end -->
+
+
+    <!-- assign application details start -->
+
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            Submitted Application Sarveyer Details
+        </div>
+    </h4>
+    <div class="card">
+        <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+            <div class="card-body">
+                <div class="card-datatable">
+                    <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                        <div class="table-responsive mt-1">
+                            <table class="table dataTable">
+                                <thead>
+                                    <tr>
+                                        <th class="w-5">No</th>
+                                        <th class="w-5">Sarveyer Name</th>
+                                        <th class="w-5">Assign Date</th>
+                                        <th class="w-5">Submitted Sarveyer Name</th>
+                                        <th class="w-5">Submitted Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="">
+                                    <tr
+                                        *ngFor="let assignableSarveyerData of assignableSarveyerList ; let assignableSarveyerIndex = index">
+                                        <td>{{ assignableSarveyerIndex + 1 }}</td>
+                                        <td>{{ assignableSarveyerData?.sarveName }}</td>
+                                        <td>{{ assignableSarveyerData?.assignDate | date : 'dd/MM/yyyy' }}</td>
+                                        <td>{{ assignableSarveyerData?.submittedbyName ?
+                                            assignableSarveyerData?.submittedbyName : '-' }}</td>
+                                        <td>{{ assignableSarveyerData?.submittedDate | date : 'dd/MM/yyyy' }}</td>
+                                    </tr>
+                                    <tr *ngIf="noData">
+                                        <td colspan="6">
+                                            <h4 class="text-center mt-3">No Data Found</h4>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- assign application details end -->
+
+</div>

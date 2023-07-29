@@ -1,0 +1,182 @@
+<!-- Navbar -->
+<nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+    id="layout-navbar">
+    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+        <a class="nav-item nav-link px-0 me-xl-4" (click)="sidebarToggle()">
+            <i class="bx bx-menu bx-sm"></i>
+        </a>
+    </div>
+
+    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+        <!-- Search -->
+        <!-- <ol class="breadcrumb mb-0"> -->
+
+        <!-- <li class="breadcrumb-item fs-6" *ngFor="let pageData of getTitle()?.pastPage">
+                <a routerLink="{{pageData.pastUrl}}">{{ pageData.pastLinkName }}</a>
+            </li>
+            <li class="breadcrumb-item fs-6 active">{{getTitle().currentPageName}}</li> -->
+        <!-- <li class="breadcrumb-item fs-6 active text-primary">Mindset Staffing Agency LLC</li> -->
+        <!-- </ol> -->
+        <!-- /Search -->
+        <div class="navbar-nav align-items-center">
+            <div class="nav-item d-flex align-items-center">
+                <i class="bx bx-search fs-4 lh-0"></i>
+                <input type="text" class="form-control border-0 shadow-none" placeholder="Search..."
+                    aria-label="Search..." (input)="search()">
+            </div>
+        </div>
+        <!-- <app-navbar-search (searchData)="search()"></app-navbar-search> -->
+        <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <!-- User -->
+            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                        <!-- <img src="../../../assets/img/user.png" alt class="w-px-40 h-auto rounded-circle" /> -->
+                        <img src="../../../assets/img/user.png" alt class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar avatar-online">
+                                        <img src="../../../assets/img/user.png" alt
+                                            class="w-px-40 h-auto rounded-circle" />
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="fw-semibold d-block">{{username}}</span>
+                                    <small class="text-muted">Admin</small>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="dropdown-divider"></div>
+                    </li>
+                    <!-- <li>
+                        <a class="dropdown-item" href="#">
+                            <i class="bx bx-user me-2"></i>
+                            <span class="align-middle">My Profile</span>
+                        </a>
+                    </li> -->
+                    <li>
+                        <a class="dropdown-item cursor-pointer" (click)="changePassword()">
+                            <i class="bx bx-lock me-2"></i>
+                            <span class="align-middle">Change Password</span>
+                        </a>
+                    </li>
+                    <!-- <li>
+                        <a class="dropdown-item" href="#">
+                            <i class="bx bx-cog me-2"></i>
+                            <span class="align-middle">Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#">
+                            <span class="d-flex align-items-center align-middle">
+                                <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
+                                <span class="flex-grow-1 align-middle">Billing</span>
+                                <span
+                                    class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
+                            </span>
+                        </a>
+                    </li> -->
+
+                    <li>
+                        <a class="dropdown-item cursor-pointer" (click)="logout()">
+                            <i class="bx bx-power-off me-2"></i>
+                            <span class="align-middle">Log Out</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <!--/ User -->
+        </ul>
+    </div>
+</nav>
+
+<div class="modal fade" id="change-password-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel1"><strong>Change Password</strong></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    (click)="cancelchangePassword()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" [formGroup]="changePasswordForm">
+                    <div class="col-lg-12 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label" for="password">Old Password</label>
+                        </div>
+                        <div class="input-group input-group-merge">
+                            <input [type]="hide1 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                formControlName="oldpwd" id="oldpassword" class="form-control" name="password"
+                                placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                aria-describedby="password" />
+                            <span (click)="hide1 = !hide1" [attr.aria-label]="'Hide password'"
+                                [attr.aria-pressed]="hide1" class="input-group-text cursor-pointer"><i
+                                    class="bx {{hide1 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                        </div>
+                        <div *ngIf="submittedChangePasswordData && fLoginData.oldpwd.errors" class="text-right">
+                            <div *ngIf="fLoginData.oldpwd.errors.required">
+                                <span class="error_msg">Old Password is Required.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label" for="password">New Password</label>
+                        </div>
+                        <div class="input-group input-group-merge">
+                            <input [type]="hide2 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                formControlName="newpwd" id="newpassword" class="form-control" name="password"
+                                placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                aria-describedby="password" />
+                            <span (click)="hide2 = !hide2" [attr.aria-label]="'Hide password'"
+                                [attr.aria-pressed]="hide2" class="input-group-text cursor-pointer"><i
+                                    class="bx {{hide2 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                        </div>
+                        <div *ngIf="submittedChangePasswordData && fLoginData.newpwd.errors" class="text-right">
+                            <div *ngIf="fLoginData.newpwd.errors.required">
+                                <span class="error_msg">Password is Required.</span>
+                            </div>
+                            <div *ngIf="fLoginData.newpwd.errors?.invalidPassword" class="error_msg">
+                                Password
+                                must contain atleast one number,one Alphabetic character and special
+                                characters.</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label" for="password">Confirm Password</label>
+                        </div>
+                        <div class="input-group input-group-merge">
+                            <input [type]="hide3 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                formControlName="confirmPwd" id="confirmpassword" class="form-control" name="password"
+                                placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                aria-describedby="password" />
+                            <span (click)="hide3 = !hide3" [attr.aria-label]="'Hide password'"
+                                [attr.aria-pressed]="hide3" class="input-group-text cursor-pointer"><i
+                                    class="bx {{hide3 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                        </div>
+                        <div *ngIf="submittedChangePasswordData && fLoginData.confirmPwd.errors" class="text-right">
+                            <div *ngIf="fLoginData.confirmPwd.errors.required">
+                                <span class="error_msg">Confirm Password is Required.</span>
+                            </div>
+                            <div *ngIf="fLoginData.confirmPwd.errors?.mustMatch" class="error_msg">
+                                Passwords
+                                must match</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" (click)="updateChangepwd()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- / Navbar -->

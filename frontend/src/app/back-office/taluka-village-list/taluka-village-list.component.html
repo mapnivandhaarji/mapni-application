@@ -1,0 +1,121 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/dashboard">Dashboard /</span>
+            Taluka Village List
+        </div>
+
+
+    </h4>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="row col-sm-12 col-md-12">
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Search :
+                            </span>
+                            <span class="w-70">
+                                <input type="text" class="form-control" placeholder="Search"
+                                    (input)="search($event.target.value)">
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <span class="w-30">
+                                Taluka :
+                            </span>
+                            <span class="w-70">
+                                <ng-select [items]="talukaList" class="form-control  p-0" bindLabel="talukaName"
+                                    [(ngModel)]="talukaId" bindValue="talukaId" placeholder="Select Taluka"
+                                    (change)="getVillageListByTalukaId()" [clearable]="true">
+                                </ng-select>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-datatable">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="table-responsive mt-1">
+                    <table class="table dataTable">
+                        <thead>
+                            <tr>
+                                <th class="w-5">No</th>
+                                <th class="w-5">Taluka Name</th>
+                                <th class="w-5">Village Name</th>
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                            <tr
+                                *ngFor="let villageListData of villageList | paginate: { itemsPerPage: l, currentPage: p }; let vIndex = index">
+                                <td>{{ l * (p - 1) + vIndex + 1 }}</td>
+                                <td>{{ villageListData.talukaName }}</td>
+                                <td>{{ villageListData.villageName }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row px-4" *ngIf="!noData && villageList.length > l">
+            <div class="col-sm-12 col-md-6">
+                <div class="d-flex align-items-center justify-content-between ">
+                    <div class="dataTables_info me-4">Showing {{l * (p - 1) + 1}} to {{l * (p - 1) + l <
+                            villageList.length ? l * (p - 1) + l : villageList.length}} of {{villageList.length}}
+                            entries</div>
+
+                            <div class="dataTables_length d-flex align align-items-center dataTables_filter-1"
+                                id="DataTables_Table_0_length">
+                                <label class="me-2">Show</label>
+                                <ng-select name="DataTables_Table_0_length" [items]="itemList" [multiple]="false"
+                                    class="form-select custom-class form-control p-0 me-2" [searchable]="false"
+                                    bindLabel="name" bindValue="value" [(ngModel)]="itemsPerPage"
+                                    (change)="itemsPerPageChange($event.value)" [clearable]="false"
+                                    placeholder="Select Account Type">
+                                </ng-select>
+                                <label>entries</label>
+                            </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="dataTables_paginate paging_simple_numbers float-end">
+                        <pagination-template #pagination="paginationApi" (pageChange)="p = $event; setPage($event)">
+                            <ul class="pagination">
+                                <li class="page-item prev" [class.disabled]="pagination.isFirstPage()">
+                                    <a *ngIf="!pagination.isFirstPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.previous()">
+                                        <i class="tf-icon bx bx-chevron-left"></i> </a>
+                                    <div *ngIf="pagination.isFirstPage()" class="page-link">
+                                        <i class="tf-icon bx bx-chevron-left"></i>
+                                    </div>
+                                </li>
+
+                                <li *ngFor="let page of pagination.pages" class="page-item"
+                                    [class.active]="pagination.getCurrent() === page.value">
+                                    <a (click)="pagination.setCurrent(page.value)" class="page-link cursor-pointer"
+                                        *ngIf="pagination.getCurrent() !== page.value">
+                                        <span>{{ page.label }}</span>
+                                    </a>
+                                    <div class="page-link" *ngIf="pagination.getCurrent() === page.value">
+                                        <span>{{ page.label }}</span>
+                                    </div>
+                                </li>
+                                <li class="page-item next" [class.disabled]="pagination.isLastPage()">
+                                    <a *ngIf="!pagination.isLastPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.next()"><i class="tf-icon bx bx-chevron-right"></i> </a>
+                                    <div *ngIf="pagination.isLastPage()" class="page-link"><i
+                                            class="tf-icon bx bx-chevron-right"></i> </div>
+                                </li>
+                            </ul>
+                        </pagination-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

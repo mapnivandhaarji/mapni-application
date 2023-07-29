@@ -1,0 +1,138 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            Sarveyer Details
+        </div>
+        <div>
+            <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                <div class="dt-buttons">
+                    <button class="dt-button create-new btn btn-outline-primary" type="button"
+                        routerLink="/admin/sarve-list"><span><span class="d-none d-sm-inline-block">Back to
+                                List</span></span></button>
+                </div>
+            </div>
+        </div>
+    </h4>
+
+    <!-- application details start -->
+
+    <div class="card mb-3">
+        <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+            <div class="card-body">
+                <div class="row">
+                    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            Name : {{sarveryerDetails?.name}}
+                        </div>
+                    </h4>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Mobile No. :</span>
+                                <span>{{sarveryerDetails?.mobile}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="fw-bold me-2">Email :</span>
+                                <span>{{sarveryerDetails?.email}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- application details end -->
+
+
+    <!-- assign application details start -->
+
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            Available Application Details
+        </div>
+        <div>
+            Total Application : {{applicationDetailsListLength}}
+        </div>
+    </h4>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="col-sm-12 col-md-6 d-flex">
+                    <div id="DataTables_Table_0_filter" class="dataTables_filter my-0">
+                        <label>Search:
+                            <input type="search" class="form-control" placeholder="Search"
+                                aria-controls="DataTables_Table_0" (input)="search($event.target.value)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+            <div class="card-body">
+                <div class="card-datatable">
+                    <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                        <div class="table-responsive mt-1">
+                            <table class="table dataTable">
+                                <thead>
+                                    <tr>
+                                        <th class="w-5">Applicant Name</th>
+                                        <th class="w-5">District</th>
+                                        <th class="w-5">Taluka</th>
+                                        <th class="w-5">Village</th>
+                                        <th class="w-5">New Sarve No.</th>
+                                        <th class="w-5">Old Sarve No.</th>
+                                        <th class="w-5">Application Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="overflow-auto" style="max-height: 1000px;">
+                                    <tr
+                                        *ngFor="let applicationDetailsData of applicationDetailsList ; let assignableSarveyerIndex = index">
+                                        <!-- <tr> -->
+                                        <td>
+                                            <div class="d-flex justify-content-start align-items-center user-name">
+                                                <div class="avatar-wrapper">
+                                                    <div class="avatar me-2"><span
+                                                            class="avatar-initial rounded-circle bg-label-dark">{{applicationDetailsData?.MTRno}}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex flex-column"><span
+                                                        class="emp_name text-truncate">{{applicationDetailsData?.applicantName}}</span><small
+                                                        class="emp_post text-truncate text-muted">{{applicationDetailsData?.applicantMobileNo}}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{applicationDetailsData?.district == 8 ? 'સુરેન્દ્રનગર' : ''}}</td>
+                                        <td>{{applicationDetailsData?.talukaName}}</td>
+                                        <td>{{applicationDetailsData?.villageName}}</td>
+                                        <td>{{applicationDetailsData?.newServeNo}}</td>
+                                        <td>{{applicationDetailsData?.oldServeNo}}</td>
+                                        <td>{{applicationDetailsData?.applicationFullDate | date :
+                                            'dd/MM/yyyy'}}</td>
+
+                                    </tr>
+                                    <tr *ngIf="noData">
+                                        <td colspan="8">
+                                            <h4 class="text-center mt-3">No Data Found</h4>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- assign application details end -->
+
+</div>

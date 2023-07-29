@@ -1,0 +1,146 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            <span class="text-muted fw-light cursor-pointer" routerLink="/admin/dashboard">Dashboard /</span>
+            Sarve List
+        </div>
+        <div>
+            <div class="dt-action-buttons text-end pt-3 pt-md-0">
+                <div class="dt-buttons">
+                    <button class="dt-button create-new btn btn-primary" type="button"
+                        routerLink="/admin/sarve-list/sarve-create"><span><span class="d-none d-sm-inline-block">Add
+                                New</span></span></button>
+                </div>
+            </div>
+        </div>
+    </h4>
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="col-sm-12 col-md-6 d-flex">
+                    <div id="DataTables_Table_0_filter" class="dataTables_filter my-0">
+                        <label>Search:
+                            <input type="search" class="form-control" placeholder="Search"
+                                aria-controls="DataTables_Table_0" (input)="search($event.target.value)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-datatable">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="table-responsive mt-1">
+                    <table class="table dataTable" matSort matSortDisableClear="true"
+                        (matSortChange)="sortData($event)">
+                        <thead>
+                            <tr>
+                                <th class="w-10">Action</th>
+                                <th class="w-5">No</th>
+                                <th class="w-5" mat-sort-header="name">Name</th>
+                                <th class="w-5" mat-sort-header="email">Email</th>
+                                <th class="w-5" mat-sort-header="mobile">Mobile</th>
+                                <th class="w-10">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                            <tr
+                                *ngFor="let sarvemasterData of sarvemasterList | paginate: { itemsPerPage: l, currentPage: p }; let sarveMasterIndex = index">
+                                <td>
+                                    <div class="d-flex">
+                                        <button class="btn btn-bg bg-label-primary p-1 me-2 "
+                                            (click)="editSarvemaster(sarvemasterData._id)"><i class="bx bx-edit-alt "
+                                                tooltip="Edit" placement="bottom" showDelay="100"></i>
+                                        </button>
+                                        <button class="btn btn-bg bg-label-primary p-1 me-2 "
+                                            (click)="viewSarvemaster(sarvemasterData._id)"><i class="bx bx-show"
+                                                tooltip="View" placement="bottom" showDelay="100"></i>
+                                        </button>
+                                        <button *ngIf="sarvemasterData.status == 2"
+                                            (click)="statusSarvemaster({id :sarvemasterData._id,index:sarveMasterIndex, status:1})"
+                                            class="btn btn-bg bg-label-success p-1" tooltip="Active" placement="bottom"
+                                            showDelay="100"><i class="bx bx-plus"></i></button>
+                                        <button *ngIf="sarvemasterData.status == 1"
+                                            (click)="statusSarvemaster({id :sarvemasterData._id,index:sarveMasterIndex, status:2})"
+                                            class="btn btn-bg bg-label-danger p-1" tooltip="Deactive" placement="bottom"
+                                            showDelay="100"><i class="bx bx-trash"></i></button>
+                                    </div>
+                                </td>
+                                <td>{{ l * (p - 1) + sarveMasterIndex + 1 }}</td>
+                                <td>{{ sarvemasterData.name }}</td>
+                                <td>{{ sarvemasterData.email }}</td>
+                                <td>{{ sarvemasterData.mobile }}</td>
+                                <td>
+                                    <span *ngIf="sarvemasterData.status == 1"
+                                        class="badge bg-label-success me-1">Active</span>
+                                    <span *ngIf="sarvemasterData.status == 2"
+                                        class="badge bg-label-danger me-1">Deactive</span>
+                                </td>
+                            </tr>
+                            <tr *ngIf="noData">
+                                <td colspan="6">
+                                    <h4 class="text-center mt-3">No Data Found</h4>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row px-4" *ngIf="!noData && sarvemasterList?.length > l">
+            <div class="col-sm-12 col-md-6">
+                <div class="d-flex align-items-center justify-content-between ">
+                    <div class="dataTables_info me-4">Showing {{l * (p - 1) + 1}} to {{l * (p - 1) + l <
+                            sarvemasterList?.length ? l * (p - 1) + l : sarvemasterList?.length}} of
+                            {{sarvemasterList?.length}} entries</div>
+
+                            <div class="dataTables_length d-flex align align-items-center dataTables_filter-1"
+                                id="DataTables_Table_0_length">
+                                <label class="me-2">Show</label>
+                                <ng-select name="DataTables_Table_0_length" [items]="itemList" [multiple]="false"
+                                    class="form-select custom-class form-control p-0 me-2" [searchable]="false"
+                                    bindLabel="name" bindValue="value" [(ngModel)]="itemsPerPage"
+                                    (change)="itemsPerPageChange($event.value)" [clearable]="false"
+                                    placeholder="Select Account Type">
+                                </ng-select>
+                                <label>entries</label>
+                            </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="dataTables_paginate paging_simple_numbers float-end">
+                        <pagination-template #pagination="paginationApi" (pageChange)="p = $event; setPage($event)">
+                            <ul class="pagination">
+                                <li class="page-item prev" [class.disabled]="pagination.isFirstPage()">
+                                    <a *ngIf="!pagination.isFirstPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.previous()">
+                                        <i class="tf-icon bx bx-chevron-left"></i> </a>
+                                    <div *ngIf="pagination.isFirstPage()" class="page-link">
+                                        <i class="tf-icon bx bx-chevron-left"></i>
+                                    </div>
+                                </li>
+
+                                <li *ngFor="let page of pagination.pages" class="page-item"
+                                    [class.active]="pagination.getCurrent() === page.value">
+                                    <a (click)="pagination.setCurrent(page.value)" class="page-link cursor-pointer"
+                                        *ngIf="pagination.getCurrent() !== page.value">
+                                        <span>{{ page.label }}</span>
+                                    </a>
+                                    <div class="page-link" *ngIf="pagination.getCurrent() === page.value">
+                                        <span>{{ page.label }}</span>
+                                    </div>
+                                </li>
+                                <li class="page-item next" [class.disabled]="pagination.isLastPage()">
+                                    <a *ngIf="!pagination.isLastPage()" class="page-link cursor-pointer"
+                                        (click)="pagination.next()"><i class="tf-icon bx bx-chevron-right"></i> </a>
+                                    <div *ngIf="pagination.isLastPage()" class="page-link"><i
+                                            class="tf-icon bx bx-chevron-right"></i> </div>
+                                </li>
+                            </ul>
+                        </pagination-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

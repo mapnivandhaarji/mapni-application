@@ -1,0 +1,71 @@
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 d-flex align-items-center justify-content-between">
+        <div>
+            Dashboard
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-primary" (click)="downloadExcelReport()">
+                <i class="fa fa-download"></i>
+            </button>
+        </div>
+    </h4>
+    <div class="card">
+        <h5 class="card-header">Sarveyer Year Wise Count : </h5>
+        <div class="card-datatable" *ngIf="noData == false">
+            <div class="dataTables_wrapper dt-bootstrap5 no-footer">
+                <div class="table-responsive mt-1">
+                    <table class="table dataTable table-bordered">
+                        <thead>
+                            <tr>
+                                <td>અનુ ક્રમ નંબર</td>
+                                <td>જીલ્લાનુ નામ</td>
+                                <td>તાલુકાનુ નામ</td>
+                                <td>અરજીનુ વર્ષ</td>
+                                <td *ngFor="let sarveyerListData of sarveyerList;">
+                                    {{sarveyerListData.name}}
+                                </td>
+                                <td><b>ટોટલ</b></td>
+                            </tr>
+                        </thead>
+                        <tbody *ngFor="let counterListData of counterList ; let counterListIndex = index">
+                            <tr
+                                *ngFor="let data of counterListData.value | sort : 'applicationYear' ;let countdataIndex = index">
+                                <td [attr.rowspan]="counterListData.value.length" *ngIf="countdataIndex == 0">
+                                    {{counterListIndex}}</td>
+                                <td>{{data.districtName}}</td>
+                                <td>{{data.talukaName}}</td>
+                                <td>{{data.applicationYear}}</td>
+                                <td *ngFor="let sarveyerListData of sarveyerList">
+                                    <span *ngFor="let counterListDataSarvyer of data.sarveData;">
+                                        <span *ngIf="counterListDataSarvyer.sarveId == sarveyerListData._id">
+                                            {{counterListDataSarvyer.count}}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td><b>{{data.count}}</b></td>
+                            </tr>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <td class="text-end" colspan="4"><b>ટોટલ</b></td>
+                                <td *ngFor="let sarveyerListData of sarveyerList;">
+                                    <b>{{sarveyerListData.count}}</b>
+                                </td>
+                                <td class="text-primary  bg-label-primary">
+                                    <b><strong>{{totalCount}}</strong></b>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="text-center" *ngIf="noData == true">
+            <h4>
+                Application is not assign to any sarveyer.
+            </h4>
+        </div>
+
+
+    </div>
+</div>

@@ -1,0 +1,315 @@
+<!-- Content -->
+
+<div class="img js-fullheight" style="background:url(../../../assets/img/bg.jpg);">
+    <div class="blur">
+        <div class="container-xxl">
+            <div class="authentication-wrapper authentication-basic container-p-y">
+                <div class="authentication-inner">
+                    <!-- Register -->
+                    <div class="card">
+                        <div class="card-body" *ngIf="activeTab == 1">
+                            <!-- Logo -->
+                            <div class="app-brand justify-content-center">
+                                <a class="app-brand-link gap-2">
+                                    <span class="app-brand-logo demo">
+                                        <img src="../../../assets/img/logo.png" alt="" width="180">
+                                        <!-- <h3 class="text-primary mt-5">
+                                            <strong>માપણી વાંધા અરજી</strong>
+                                        </h3> -->
+                                    </span>
+                                </a>
+                            </div>
+                            <!-- /Logo -->
+                            <h4 class="mb-2 text-primary">માપણી વાંધા અરજી માં સ્વાગત ! 👋</h4>
+                            <p class="mb-4">Please sign-in to your account</p>
+
+                            <form id="formAuthentication" class="mb-3" method="POST" [formGroup]="loginForm">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="text" class="form-control" id="email" name="email-username"
+                                        placeholder="Enter your email" formControlName="email" autofocus />
+                                    <div *ngIf="submittedLoginData && fLoginData.email.errors" class="text-right">
+                                        <div *ngIf="fLoginData.email.errors.required">
+                                            <span class="error_msg">Email ID is Required.</span>
+                                        </div>
+                                        <div
+                                            *ngIf="!fLoginData.email.errors.valid && !fLoginData.email.errors.required">
+                                            <span class="error_msg">Please Enter Valid Email ID.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 form-password-toggle">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="password">Password</label>
+                                    </div>
+                                    <div class="input-group input-group-merge">
+                                        <input [type]="hide1 ? 'text' : 'password'" formControlName="pwd" id="password"
+                                            class="form-control" name="password"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                            aria-describedby="password" />
+                                        <span (click)="hide1 = !hide1" [attr.aria-label]="'Hide password'"
+                                            [attr.aria-pressed]="hide1" class="input-group-text cursor-pointer"><i
+                                                class="bx {{hide1 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                                    </div>
+                                    <div *ngIf="submittedLoginData && fLoginData.pwd.errors" class="text-right">
+                                        <div *ngIf="fLoginData.pwd.errors.required">
+                                            <span class="error_msg">Password is Required.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between float-end pb-3">
+                                        <!-- <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="remember-me" />
+                                            <label class="form-check-label" for="remember-me"> Remember Me </label>
+                                        </div> -->
+                                        <a href="javascript:void(0);" (click)="forgotPassword()">
+                                            <small>Forgot Password?</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button class="btn btn-primary d-grid w-100" type="submit" (click)="login()">Sign
+                                        in</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-body" *ngIf="activeTab == 2">
+                            <!-- Logo -->
+                            <div class="app-brand justify-content-center">
+                                <a href="index.html" class="app-brand-link gap-2">
+                                    <span class="app-brand-logo demo">
+                                        <img src="../../../assets/img/logo.png" alt="" width="180">
+                                    </span>
+                                </a>
+                            </div>
+                            <!-- /Logo -->
+                            <h4 class="mb-4">Forgot Password👋</h4>
+
+                            <form class="mb-3" [formGroup]="forgotpwdForm">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="text" class="form-control" id="email" name="email-username"
+                                        placeholder="Enter your email or username" formControlName="email" autofocus />
+                                    <div *ngIf="forgotpwdData && fForgotpwdData.email.errors" class="text-right">
+                                        <div *ngIf="fForgotpwdData.email.errors.required">
+                                            <span class="error_msg">Email ID is Required.</span>
+                                        </div>
+                                        <div
+                                            *ngIf="!fForgotpwdData.email.errors.valid && !fForgotpwdData.email.errors.required">
+                                            <span class="error_msg">Please Enter Valid Email ID.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between float-start pb-3">
+                                        <!-- <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="remember-me" />
+                                            <label class="form-check-label" for="remember-me"> Remember Me </label>
+                                        </div> -->
+                                        <a href="javascript:void(0);" (click)="backtoLogin()">
+                                            <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+                                            <small>Back to Login ?</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button class="btn btn-primary d-grid w-100" type="submit" (click)="sendOtp()">Send
+                                        OTP</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-body" *ngIf="activeTab == 3">
+                            <!-- Logo -->
+                            <div class="app-brand justify-content-center">
+                                <a href="index.html" class="app-brand-link gap-2">
+                                    <span class="app-brand-logo demo">
+                                        <img src="../../../assets/img/logo.png" alt="" width="180">
+                                    </span>
+                                </a>
+                            </div>
+                            <!-- /Logo -->
+                            <h4 class="mb-4">OTP👋</h4>
+
+                            <form id="formAuthentication" class="mb-3" method="POST" [formGroup]="otpForm">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Enter 4 Digit OTP</label>
+                                    <ng-otp-input class="otp-input" [config]="config"
+                                        (onInputChange)="onOtpChange($event)">
+                                    </ng-otp-input>
+                                    <div class=""><span class="error_msg">{{otpMessage}}</span></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="javascript:void(0);" (click)="backtoLogin()">
+                                            <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+                                            <small>Back to Login ?</small>
+                                        </a>
+                                        <a href="javascript:void(0);" (click)="resendOtp()">
+                                            <small>Resend OTP</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button class="btn btn-primary d-grid w-100" type="submit"
+                                        (click)="otpVerify()">Submit</button>
+                                </div>
+                                <div class="text-center">
+
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-body" *ngIf="activeTab == 4">
+                            <!-- Logo -->
+                            <div class="app-brand justify-content-center">
+                                <a href="index.html" class="app-brand-link gap-2">
+                                    <span class="app-brand-logo demo">
+                                        <img src="../../../assets/img/logo.png" alt="" width="180">
+                                    </span>
+                                </a>
+                            </div>
+                            <!-- /Logo -->
+                            <h4 class="mb-4">Reset Password</h4>
+
+                            <form class="mb-3" [formGroup]="resetpwdForm">
+                                <input type="hidden" formControlName="user_id" />
+                                <div class="mb-3 form-password-toggle">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="password">Password</label>
+                                    </div>
+                                    <div class="input-group input-group-merge">
+                                        <input [type]="hide1 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                            formControlName="pwd" id="password" class="form-control" name="password"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                            aria-describedby="password" />
+                                        <span (click)="hide1 = !hide1" [attr.aria-label]="'Hide password'"
+                                            [attr.aria-pressed]="hide1" class="input-group-text cursor-pointer"><i
+                                                class="bx {{hide1 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                                    </div>
+                                    <div *ngIf="submittedresetpwdFormData && fResetpwdData.pwd.errors"
+                                        class="text-right">
+                                        <div *ngIf="fResetpwdData.pwd.errors.required">
+                                            <span class="error_msg">Password is Required.</span>
+                                        </div>
+                                        <div *ngIf="fResetpwdData.pwd.errors?.invalidPassword" class="error_msg">
+                                            Password
+                                            must contain atleast one number,one Alphabetic character and special
+                                            characters.</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 form-password-toggle">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="password">Confirm Password</label>
+                                    </div>
+                                    <div class="input-group input-group-merge">
+                                        <input [type]="hide2 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                            formControlName="confirmPwd" id="password" class="form-control"
+                                            name="password"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                            aria-describedby="password" />
+                                        <span (click)="hide2 = !hide2" [attr.aria-label]="'Hide password'"
+                                            [attr.aria-pressed]="hide2" class="input-group-text cursor-pointer"><i
+                                                class="bx {{hide2 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                                    </div>
+                                    <div *ngIf="submittedresetpwdFormData && fResetpwdData.confirmPwd.errors"
+                                        class="text-right">
+                                        <div *ngIf="fResetpwdData.confirmPwd.errors.required">
+                                            <span class="error_msg">Confirm Password is Required.</span>
+                                        </div>
+                                        <div *ngIf="fResetpwdData.confirmPwd.errors?.mustMatch" class="error_msg">
+                                            Passwords
+                                            must match</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button class="btn btn-primary d-grid w-100" type="submit"
+                                        (click)="resetpassword()">Submit</button>
+                                </div>
+                                <div class="text-center">
+                                    <a href="javascript:void(0);" (click)="backtoLogin()">
+                                        <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+                                        <small>Back to Login ?</small>
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-body" *ngIf="activeTab == 5">
+                            <!-- Logo -->
+                            <div class="app-brand justify-content-center">
+                                <a href="index.html" class="app-brand-link gap-2">
+                                    <span class="app-brand-logo demo">
+                                        <img src="../../../assets/img/logo.png" alt="" width="180">
+                                    </span>
+                                </a>
+                            </div>
+                            <!-- /Logo -->
+                            <h4 class="mb-4">New Password</h4>
+
+                            <form id="formAuthentication" class="mb-3" method="POST" [formGroup]="loginForm">
+                                <div class="mb-3 form-password-toggle">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="password">New Password</label>
+                                    </div>
+                                    <div class="input-group input-group-merge">
+                                        <input [type]="hide1 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                            formControlName="pwd" id="password" class="form-control" name="password"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                            aria-describedby="password" />
+                                        <span (click)="hide1 = !hide1" [attr.aria-label]="'Hide password'"
+                                            [attr.aria-pressed]="hide1" class="input-group-text cursor-pointer"><i
+                                                class="bx {{hide1 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                                    </div>
+                                    <div *ngIf="submittedLoginData && fLoginData.pwd.errors" class="text-right">
+                                        <div *ngIf="fLoginData.pwd.errors.required">
+                                            <span class="error_msg">New Password is Required.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 form-password-toggle">
+                                    <div class="d-flex justify-content-between">
+                                        <label class="form-label" for="password">Confirm Password</label>
+                                    </div>
+                                    <div class="input-group input-group-merge">
+                                        <input [type]="hide1 ? 'text' : 'password'" (keyup.enter)="handleKeyUp($event)"
+                                            formControlName="pwd" id="password" class="form-control" name="password"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                            aria-describedby="password" />
+                                        <span (click)="hide1 = !hide1" [attr.aria-label]="'Hide password'"
+                                            [attr.aria-pressed]="hide1" class="input-group-text cursor-pointer"><i
+                                                class="bx {{hide1 ? 'bx-show' : 'bx-hide'}}"></i></span>
+                                    </div>
+                                    <div *ngIf="submittedLoginData && fLoginData.pwd.errors" class="text-right">
+                                        <div *ngIf="fLoginData.pwd.errors.required">
+                                            <span class="error_msg">Confirm Password is Required.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="javascript:void(0);" (click)="login()">
+                                            <small>Resend OTP</small>
+                                        </a>
+                                    </div>
+                                </div> -->
+                                <div class="mb-3">
+                                    <button class="btn btn-primary d-grid w-100" type="submit"
+                                        (click)="newPassword()">Submit</button>
+                                </div>
+                                <div class="text-center">
+                                    <a href="javascript:void(0);" (click)="backtoLogin()">
+                                        <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+                                        <small>Back to Login ?</small>
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- /Register -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- / Content -->
