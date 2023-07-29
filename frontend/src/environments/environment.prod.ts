@@ -14,9 +14,9 @@ export const environment = {
   backendUrl: "http://localhost:4200/admin/",
 
 
-  WebAPIUrl: "https://mapniapplication.onrender.com//v1/",
-  uploadsUrl: "https://mapniapplication.onrender.com//uploads/",
-  uploadedUrl: "https://mapniapplication.onrender.com//uploads/photos/",
+  WebAPIUrl: "https://mapniapplication.onrender.com/v1/",
+  uploadsUrl: "https://mapniapplication.onrender.com/uploads/",
+  uploadedUrl: "https://mapniapplication.onrender.com/uploads/photos/",
 
 
 };
